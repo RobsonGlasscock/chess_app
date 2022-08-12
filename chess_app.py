@@ -213,6 +213,7 @@ The third Time control field kind is formed as two positive integers separated b
 # below is for one move per day. 
 86400/60
 1440/60
+((259200/60) /60 ) /24
 
 # Overwrite the data variable with just the data component
 df["date"] = df["date"].apply(lambda x: x[-12:-2])
@@ -283,18 +284,6 @@ df_export= df.groupby(['year', 'time_control'])['rating'].describe().round()
 df_export.head()
 df_export.info()
 df_export= df_export.astype(int)
-df_export.to_excel('richard.xlsx')
 
-##############################
-# Single example. 
-
-game_year_month= requests.get('https://api.chess.com/pub/player/raekwan/games/2022/05/pgn')
-
-with open("games.txt", "w") as f:
-    f.write(game_year_month.text)
-
-df= pd.read_csv('games.txt')
-
-df.head(30)
-
-df.tail(30)
+export_string= pn + '.xlsx'
+df_export.to_excel(export_string)
