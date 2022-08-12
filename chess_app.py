@@ -2,12 +2,15 @@
 import os
 import pandas as pd
 import requests
+import time
+
+start = time.time()
 
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_rows", None)
 
 # Define the player's name.
-pn = "popcorn587"
+pn = "RaeKwan"
 # The chess.com player name in the url path is lowercase. Convert to lower here.
 player_name = pn.lower()
 
@@ -135,6 +138,20 @@ games.info()
 games.head(25)
 games.tail()
 
+# Scaffolding to retain only the rows that matter. Keeping this subset,
+# instead of iterating through every row which contains lots of rows
+# I don't care about, is being done to save processing time. RichardShtivelband's
+# games too a long time to iterate through since he had so many so I am
+# trying to consider the speed of the web app in the future here.
+"""
+games[
+    (games["data"].str.contains("[Date", regex=False))
+    | (games["data"].str.contains("[White", regex=False))
+    | (games["data"].str.contains("[Black", regex=False))
+    | (games["data"].str.contains("[TimeControl", regex=False))
+].head(20)
+
+"""
 # Scafolding to identify patterns
 """
 for i in range(0, len(games) - 1):
@@ -160,6 +177,38 @@ df = pd.DataFrame(
 df.head()
 
 
+# Retain only the useful rows, which contain date, white name, black name,
+# white elo, black elo, and timecontrol.
+games = games[
+    (games["data"].str.contains("[Date", regex=False))
+    | (games["data"].str.contains("[White", regex=False))
+    | (games["data"].str.contains("[Black", regex=False))
+    | (games["data"].str.contains("[TimeControl", regex=False))
+]
+
+games.reset_index(drop=True, inplace=True)
+
+# Populate the dataframe with the games data for white games.
+for i in range(0, len(games) - 1):
+    if ("[Date" in str(games["data"][i])) and (
+        player_name in games["data"][i + 1].lower()
+    ):
+        df["date"].iloc[i] = games["data"][i]
+        df["player"].iloc[i] = games["data"][i + 1]
+        df["rating"].iloc[i] = games["data"][i + 3]
+        df["time_control"].iloc[i] = games["data"][i + 5]
+
+# Populate the datafrme with the games data for black games.
+for i in range(0, len(games) - 1):
+    if ("[Date" in str(games["data"][i])) and (
+        player_name in games["data"][i + 2].lower()
+    ):
+        df["date"].iloc[i] = games["data"][i]
+        df["player"].iloc[i] = games["data"][i + 2]
+        df["rating"].iloc[i] = games["data"][i + 4]
+        df["time_control"].iloc[i] = games["data"][i + 5]
+
+"""
 # Populate the dataframe with the games data for white games.
 for i in range(0, len(games) - 1):
     if ("[Date" in str(games["data"][i])) and (
@@ -179,7 +228,7 @@ for i in range(0, len(games) - 1):
         df["player"].iloc[i] = games["data"][i + 3]
         df["rating"].iloc[i] = games["data"][i + 12]
         df["time_control"].iloc[i] = games["data"][i + 13]
-
+"""
 
 df.dropna(how="all", inplace=True)
 
@@ -354,3 +403,10 @@ df_export = df_export.astype(int)
 
 export_string = pn + ".xlsx"
 df_export.to_excel(export_string)
+
+end = time.time()
+total_time = end - start
+
+total_time
+print("execution time", str(total_time))
+
