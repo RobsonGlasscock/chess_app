@@ -1,4 +1,5 @@
 #%reset -f
+import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import requests
@@ -10,7 +11,7 @@ pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_rows", None)
 
 # Define the player's name.
-pn = "RaeKwan"
+pn = "RichardShtivelband"
 # The chess.com player name in the url path is lowercase. Convert to lower here.
 player_name = pn.lower()
 
@@ -387,12 +388,18 @@ def time_convert(col):
         return "2 minutes + 1"
     if col.strip() == "120":
         return "2 minutes"
+    if col.strip() == "180+1":
+        return "3 minutes + 1"
 
     else:
         return col
 
 
 df["time_control"] = df["time_control"].apply(time_convert)
+
+df.head()
+
+# rg: box and whiskser plot off the df dataframe?????
 
 df.groupby(["year", "time_control"])["rating"].describe()
 
@@ -409,4 +416,27 @@ total_time = end - start
 
 total_time
 print("execution time", str(total_time))
+
+
+df_export
+
+df_export["mean"].loc[("2018", "1 minute")]
+
+
+df_export["mean"].loc[[("2018", "1 minute"), ("2020", "1 minute")]]
+
+df_export.index.get_level_values(0)
+df_export.index.get_level_values(1)
+df_export["mean"].groupby(level=0).describe()
+
+f, a = plt.subplots(1, 1)
+df_export.xs("2018").plot(kind="scatter", ax=a[0])
+
+
+df_export.reset_index().pivot("year", "time_control", "mean")
+
+df_export.reset_index().pivot("year", "time_control", "mean").index
+df_export.reset_index().pivot("year", "time_control", "mean").info()
+
+df_export.reset_index().pivot("year", "time_control", "mean").plot()
 
