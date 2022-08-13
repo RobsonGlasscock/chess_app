@@ -420,23 +420,70 @@ print("execution time", str(total_time))
 
 df_export
 
-df_export["mean"].loc[("2018", "1 minute")]
+# Refer to a multiindex
+df_export.index
+df_export.index.get_level_values(0)
+df_export.index.get_level_values(1)
 
+# Per above, the index repeats if he played the same time controls in different years. Use .unique to handle this.
 
 df_export["mean"].loc[[("2018", "1 minute"), ("2020", "1 minute")]]
 
-df_export.index.get_level_values(0)
-df_export.index.get_level_values(1)
-df_export["mean"].groupby(level=0).describe()
+df_export[df_export.index.get_level_values(1) == "3 minutes"]
 
-f, a = plt.subplots(1, 1)
-df_export.xs("2018").plot(kind="scatter", ax=a[0])
+for i in df_export.index.get_level_values(1).unique():
+    print(i)
+    print(df_export["mean"][df_export.index.get_level_values(1) == i])
 
 
+df_export["mean"][df_export.index.get_level_values(1) == "3 minutes"]
+
+df_export["mean"][df_export.index.get_level_values(1) == "3 minutes"].loc[
+    "2018", "3 minutes"
+]
+
+
+df_export["mean"][df_export.index.get_level_values(1) == "3 minutes"].values
+
+df_export["mean"][
+    df_export.index.get_level_values(1) == "3 minutes"
+].index.get_level_values(0)
+
+plt.scatter(
+    df_export["mean"][
+        df_export.index.get_level_values(1) == "3 minutes"
+    ].index.get_level_values(0),
+    df_export["mean"][
+        df_export.index.get_level_values(1) == "3 minutes"
+    ].values,
+)
+
+
+# Loop for graphs
+for i in df_export.index.get_level_values(1).unique():
+    title_str = pn + " " + i
+    plt.scatter(
+        df_export["mean"][
+            df_export.index.get_level_values(1) == i
+        ].index.get_level_values(0),
+        df_export["mean"][df_export.index.get_level_values(1) == i].values,
+    )
+    plt.xlabel("Year")
+    plt.ylabel("Rating")
+    plt.title(title_str)
+    plt.show()
+
+
+# Using pivot
 df_export.reset_index().pivot("year", "time_control", "mean")
 
+df_export.reset_index().pivot("year", "time_control", "mean").plot()
+
 df_export.reset_index().pivot("year", "time_control", "mean").index
-df_export.reset_index().pivot("year", "time_control", "mean").info()
+df_export.reset_index().pivot("year", "time_control", "mean").columns
 
 df_export.reset_index().pivot("year", "time_control", "mean").plot()
+
+for i in df_export.reset_index().pivot("year", "time_control", "mean").columns:
+    print(i)
 
