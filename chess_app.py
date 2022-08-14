@@ -1,4 +1,4 @@
-#%reset -f
+%reset -f
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -171,7 +171,7 @@ for i in range(0, len(games) - 1):
 # Create an empty dataframe
 df = pd.DataFrame(
     data=[],
-    columns=["date", "player", "rating", "time_control"],
+    columns=["date", "player", "rating", "time_control", "eco", "eco_desc", "result"],
     index=[i for i in range(0, len(games) - 1)],
 )
 
@@ -185,9 +185,13 @@ games = games[
     | (games["data"].str.contains("[White", regex=False))
     | (games["data"].str.contains("[Black", regex=False))
     | (games["data"].str.contains("[TimeControl", regex=False))
+    | (games["data"].str.contains("[ECO ", regex=False))
+    | (games["data"].str.contains("[ECOUrl", regex=False))
+    | (games["data"].str.contains("[Result", regex=False))
 ]
 
 games.reset_index(drop=True, inplace=True)
+games.head(20)
 
 # Populate the dataframe with the games data for white games.
 for i in range(0, len(games) - 1):
@@ -196,8 +200,11 @@ for i in range(0, len(games) - 1):
     ):
         df["date"].iloc[i] = games["data"][i]
         df["player"].iloc[i] = games["data"][i + 1]
-        df["rating"].iloc[i] = games["data"][i + 3]
-        df["time_control"].iloc[i] = games["data"][i + 5]
+        df["rating"].iloc[i] = games["data"][i + 6]
+        df["time_control"].iloc[i] = games["data"][i + 8]
+        df["eco"].iloc[i] = games["data"][i + 4]
+        df["eco_desc"].iloc[i] = games["data"][i + 5]
+        df["result"].iloc[i] = games["data"][i + 3]
 
 # Populate the datafrme with the games data for black games.
 for i in range(0, len(games) - 1):
@@ -206,8 +213,13 @@ for i in range(0, len(games) - 1):
     ):
         df["date"].iloc[i] = games["data"][i]
         df["player"].iloc[i] = games["data"][i + 2]
-        df["rating"].iloc[i] = games["data"][i + 4]
-        df["time_control"].iloc[i] = games["data"][i + 5]
+        df["rating"].iloc[i] = games["data"][i + 7]
+        df["time_control"].iloc[i] = games["data"][i + 8]
+        df["eco"].iloc[i] = games["data"][i + 4]
+        df["eco_desc"].iloc[i] = games["data"][i + 5]
+        df["result"].iloc[i] = games["data"][i + 3]
+        
+df.head(20)
 
 """
 # Populate the dataframe with the games data for white games.
