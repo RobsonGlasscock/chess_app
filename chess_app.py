@@ -296,6 +296,76 @@ The third Time control field kind is formed as two positive integers separated b
 ((172800 / 60) / 60) / 24
 
 
+# create win/loss for white/black 
+# clean out the url portion of the ECO description. 
+
+df.head(10)
+df.info()
+
+# Create functions for the following variables: white wins, white losses, black wins,
+# black losses, white draws, black draws.                                                                                                                                                                    
+def white_wins(df):
+    if ('White' in df['player']) and ("1-0" in df['result']):
+        return 1 
+    else: 
+        return 0 
+
+def black_wins(df):
+    if ('Black' in df['player']) and ("0-1" in df['result']):
+        return 1 
+    else: 
+        return 0 
+
+def white_losses(df):
+    if ('White' in df['player']) and ("0-1" in df['result']):
+        return 1 
+    else: 
+        return 0 
+
+def black_losses(df):
+    if ('Black' in df['player']) and ("1-0" in df['result']):
+        return 1 
+    else: 
+        return 0 
+
+def white_draws(df):
+    if ('White' in df['player']) and ("1/2-1/2" in df['result']):
+        return 1 
+    else: 
+        return 0 
+
+def black_draws(df):
+    if ('Black' in df['player']) and ("1/2-1/2" in df['result']):
+        return 1 
+    else: 
+        return 0 
+
+df['white_wins']= df.apply(white_wins, axis=1)
+df['black_wins']= df.apply(black_wins, axis=1)
+df['white_losses']= df.apply(white_losses, axis=1)
+df['black_losses']= df.apply(black_losses, axis=1)
+df['white_draws']= df.apply(white_draws, axis=1)
+df['black_draws']= df.apply(black_draws, axis=1)
+
+
+df[['player', 'rating', 'result', 'white_wins', 'black_wins', 'white_losses', 'black_losses', 'white_draws', 'black_draws']].head()
+
+
+df[['player', 'rating', 'result', 'white_wins', 'black_wins', 'white_losses', 'black_losses', 'white_draws', 'black_draws']].tail(25)
+
+df[['player', 'rating', 'result', 'white_wins', 'black_wins', 'white_losses', 'black_losses', 'white_draws', 'black_draws']]
+
+df[df['result'].str.contains('1/2')].head()
+
+# Accuracy checks 
+df[df['result'].str.contains('1/2')][['player', 'rating', 'result', 'white_wins', 'black_wins', 'white_losses', 'black_losses', 'white_draws', 'black_draws']].head()
+
+df[df['result'].str.contains('0-1')][['player', 'rating', 'result', 'white_wins', 'black_wins', 'white_losses', 'black_losses', 'white_draws', 'black_draws']].head(20)
+
+df[df['result'].str.contains('1-0')][['player', 'rating', 'result', 'white_wins', 'black_wins', 'white_losses', 'black_losses', 'white_draws', 'black_draws']].head(20)
+ 
+ # No exceptions noted. 
+
 # Overwrite the data variable with just the data component
 df["date"] = df["date"].apply(lambda x: x[-12:-2])
 # Overwrite the player variabele to just contain the name.
@@ -331,11 +401,35 @@ df["time_control"] = df["time_control"].apply(lambda x: x.replace('"', ""))
 df["time_control"] = df["time_control"].apply(lambda x: x.replace("[", ""))
 df["time_control"] = df["time_control"].apply(lambda x: x.replace("]", ""))
 
-# Create a year variable.
-df["year"] = df["date"].apply(lambda x: x[:4])
 
+# Remove the unnecessary components of the string.
+df["eco"] = df["eco"].apply(
+    lambda x: x.replace("[ECO", "")
+)
+
+df["eco"] = df["eco"].apply(lambda x: x.replace('"', ""))
+df["eco"] = df["eco"].apply(lambda x: x.replace(']', ""))
 df.head()
 
+
+df["eco_desc"] = df["eco_desc"].apply(
+    lambda x: x.strip()
+)
+
+df["eco_desc"] = df["eco_desc"].apply(
+    lambda x: x.replace('[ECOUrl "https://www.chess.com/openings/', "")
+)
+
+df["eco_desc"] = df["eco_desc"].apply(
+    lambda x: x.replace('"', "")
+)
+
+df["eco_desc"] = df["eco_desc"].apply(
+    lambda x: x.replace(']', "")
+)
+
+# Create a year variable.
+df["year"] = df["date"].apply(lambda x: x[:4])
 df["year"].value_counts()
 
 # Create an annual count variable for each year-time_control.
@@ -343,13 +437,8 @@ df["ann_count"] = df.groupby(["year", "time_control"])["rating"].transform(
     "count"
 )
 
-df.head(30)
-
 # sort the dataframe
 df.sort_values(by=["year", "time_control"], inplace=True)
-
-df.head()
-df.tail()
 
 df.reset_index(drop=True, inplace=True)
 
@@ -408,8 +497,6 @@ def time_convert(col):
 
 
 df["time_control"] = df["time_control"].apply(time_convert)
-
-df.head()
 
 # rg: box and whiskser plot off the df dataframe?????
 
