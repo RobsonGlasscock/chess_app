@@ -11,7 +11,7 @@ pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_rows", None)
 
 # Define the player's name.
-pn = "RichardShtivelband"
+pn = "RaeKwan"
 # The chess.com player name in the url path is lowercase. Convert to lower here.
 player_name = pn.lower()
 
@@ -434,7 +434,7 @@ df["year"].value_counts()
 
 # Create an annual count variable for each year-time_control.
 df["ann_count"] = df.groupby(["year", "time_control"])["rating"].transform(
-    "count"
+    len
 )
 
 # sort the dataframe
@@ -498,9 +498,105 @@ def time_convert(col):
 
 df["time_control"] = df["time_control"].apply(time_convert)
 
+df.head()
+
 # rg: box and whiskser plot off the df dataframe?????
 
 df.groupby(["year", "time_control"])["rating"].describe()
+
+
+df.groupby(["year", "time_control", 'eco'])["white_wins"].describe()
+
+df.groupby(["year", "time_control", 'eco'])["white_wins"].describe().columns
+
+# This is a working example of the sorting. 
+
+''' Sorting '''
+df.groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=[ 'year', 'time_control', 'mean', 'count'], ascending=False)
+
+df.groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=[ 'year', 'time_control', 'count', 'mean'], ascending=False)
+
+# Per above, look at 2022, 15 minutes + 10. C45 21 games wtih a 0.47
+# win rate vs. B54 with 7 games and a 0.71 win rate.... which is more useful to know? How would this compare to the weighted score? 
+
+
+# Think I need to weight the mean of each win or loss by a weighting factor 
+# equal to (# games played in the particular opening / total games played in 
+# the time control ). Note that total games played in each time control 
+# was previously calculated in a variable named ann_count. 
+
+df.head()
+
+df['year_time_eco_count']= df.groupby(['year', 'time_control', 'eco'])['eco'].transform(len)
+
+df['weights']= df['year_time_eco_count'] / df['ann_count']
+
+df.head()
+
+# Calculate weighted white wins and white losses for each game. This is a temporary
+# step to then sum up within each year and time control. 
+df['white_wins_weighted'] = df['white_wins'] * df['weights']
+df['white_losses_weighted'] = df['white_losses'] * df['weights']
+
+''' Weighted ''' 
+# Compare to the sorting 
+
+df[(df['year']== '2022') & (df['eco']== 'C45')] 
+df[df['year']== '2022'].head()
+df[df['eco']== 'C45'].head()
+
+df['eco'].iloc[0]== 'B20'
+df['eco'].str.strip().iloc[0] == 'B20'
+
+df['eco'].str.strip().head()
+
+
+df[((df['year']== '2022') & (df['eco']== 'C45') ) | ( (df['year']== '2022') & (df['eco']== 'B54') )]
+
+
+
+df.info()
+df['white_wins_weighted_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['white_wins_weighted'].apply(lambda x: x.sum())
+
+
+df['white_wins_weighted_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['white_wins_weighted'].apply(lambda x: x.sum()).values
+
+
+df.shape
+df.groupby(['year', 'time_control', 'eco'])['white_wins_weighted'].apply(lambda x: x.sum())
+
+df.groupby(['year', 'time_control', 'eco'])['white_wins_weighted'].transform('sum')
+
+
+df.groupby(['year', 'time_control', 'eco'])['white_wins_weighted'].transform('sum').shape
+
+df['white_wins_weighted_sum']= df.groupby(['year', 'time_control', 'eco'])['white_wins_weighted'].transform('sum')
+
+
+df.head()
+
+df.groupby(['year', 'time_control', 'eco'])['white_wins_weighted'].apply(lambda x: x.sum()).shape
+
+df.groupby(['year', 'time_control', 'eco'])['white_wins_weighted'].apply(lambda x: x.sum())
+
+df.groupby(['year', 'time_control', 'eco'])['white_wins_weighted'].apply(lambda x: x.transform('sum'))
+
+
+
+df.groupby(['year', 'time_control', 'eco'], group_keys=False)['white_wins_weighted'].apply(lambda x: x.sum()).shape
+
+df.groupby(['year', 'time_control', 'eco'])['white_wins_weighted'].apply(lambda x: x.sum()).values
+
+df.shape
+
+import numpy as np
+np.unique(df[['year', 'time_control', 'eco']]).shape
+
+df.head()
+
+df[(df['year']=='2022') & (df['time_control']== '10 minutes')][['year', 'time_control', 'eco', 'year_time_eco_count', 'ann_count', 'weights']].to_excel('df_test.xlsx')
+
+df.head()
 
 df_export = df.groupby(["year", "time_control"])["rating"].describe().round()
 df_export
