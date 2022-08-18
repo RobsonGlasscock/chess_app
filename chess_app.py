@@ -7,7 +7,7 @@ import time
 
 start = time.time()
 
-pd.set_option("display.max_colwidth", None)
+pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
 # Define the player's name.
@@ -171,7 +171,7 @@ for i in range(0, len(games) - 1):
 # Create an empty dataframe
 df = pd.DataFrame(
     data=[],
-    columns=["date", "player", "rating", "time_control", "eco", "eco_desc", "result"],
+    columns=["date", "player", "rating", "time_control", "eco", "eco_desc", "result", "color"],
     index=[i for i in range(0, len(games) - 1)],
 )
 
@@ -205,6 +205,7 @@ for i in range(0, len(games) - 1):
         df["eco"].iloc[i] = games["data"][i + 4]
         df["eco_desc"].iloc[i] = games["data"][i + 5]
         df["result"].iloc[i] = games["data"][i + 3]
+        df["color"].iloc[i]= "white"
 
 # Populate the datafrme with the games data for black games.
 for i in range(0, len(games) - 1):
@@ -218,6 +219,7 @@ for i in range(0, len(games) - 1):
         df["eco"].iloc[i] = games["data"][i + 4]
         df["eco_desc"].iloc[i] = games["data"][i + 5]
         df["result"].iloc[i] = games["data"][i + 3]
+        df["color"].iloc[i]= "black"
         
 df.head(20)
 
@@ -409,8 +411,7 @@ df["eco"] = df["eco"].apply(
 
 df["eco"] = df["eco"].apply(lambda x: x.replace('"', ""))
 df["eco"] = df["eco"].apply(lambda x: x.replace(']', ""))
-df.head()
-
+df["eco"] = df["eco"].apply(lambda x: x.strip())
 
 df["eco_desc"] = df["eco_desc"].apply(
     lambda x: x.strip()
@@ -516,9 +517,38 @@ df.groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values
 
 df.groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=[ 'year', 'time_control', 'count', 'mean'], ascending=False)
 
+
+
+df.groupby(["year", "time_control", 'eco'])["white_losses"].describe().sort_values(by=[ 'year', 'time_control', 'count', 'mean'], ascending=False)
+
+df.groupby(["year", "time_control", 'eco'])["black_wins"].describe().sort_values(by=[ 'year', 'time_control', 'count', 'mean'], ascending=False)
+
+
+df.groupby(["year", "time_control", 'eco'])["black_losses"].describe().sort_values(by=[ 'year', 'time_control', 'count', 'mean'], ascending=False)
+
 # Per above, look at 2022, 15 minutes + 10. C45 21 games wtih a 0.47
 # win rate vs. B54 with 7 games and a 0.71 win rate.... which is more useful to know? How would this compare to the weighted score? 
 
+# This sort puts openings like B50 and A45, where I won no games in 2022 for 15 +10, showing up between openings I played more or less with higher win rates. Look at C45, B50, A45, B54, etc. 
+
+df[df['white_wins']==1].groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=[ 'year', 'time_control', 'count', 'mean'], ascending=False)
+
+# Above isn't helpful. What if I 
+
+
+df.groupby(["year", "time_control", 'eco'])["black_wins"].describe().sort_values(by=[ 'year', 'time_control', 'count', 'mean'], ascending=False)
+
+
+df[(df['year']== '2022') & (df['eco']== 'B50')] 
+
+df[(df['year']== '2021') & (df['eco']== 'B50')] 
+
+df[(df['year']== '2011') & (df['eco']== 'B50')] 
+# df[(df['eco']== 'B50')] 
+# df[(df['eco']== 'C45')] 
+
+for i in df['eco'].values:
+   print( i, "\n", df['color'][df['eco']==i].value_counts())
 
 # Think I need to weight the mean of each win or loss by a weighting factor 
 # equal to (# games played in the particular opening / total games played in 
@@ -538,25 +568,53 @@ df.head()
 df['white_wins_weighted'] = df['white_wins'] * df['weights']
 df['white_losses_weighted'] = df['white_losses'] * df['weights']
 
+df['black_wins_weighted'] = df['black_wins'] * df['weights']
+df['black_losses_weighted'] = df['black_losses'] * df['weights']
+
+
 ''' Weighted ''' 
 # Compare to the sorting 
 
-df[(df['year']== '2022') & (df['eco']== 'C45')] 
-df[df['year']== '2022'].head()
-df[df['eco']== 'C45'].head()
-
-df['eco'].iloc[0]== 'B20'
-df['eco'].str.strip().iloc[0] == 'B20'
-
-df['eco'].str.strip().head()
-
-
-df[((df['year']== '2022') & (df['eco']== 'C45') ) | ( (df['year']== '2022') & (df['eco']== 'B54') )]
+df[(df['year']== '2022') & (df['eco']== 'C45')].head() 
 
 
 
-df.info()
+# Create the numerator of the weighted average 
+df['white_wins_weighted_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['white_wins_weighted'].transform("sum")
+
+df['black_wins_weighted_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['black_wins_weighted'].transform("sum")
+
+df['white_losses_weighted_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['white_losses_weighted'].transform("sum")
+
+df['black_losses_weighted_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['black_losses_weighted'].transform("sum")
+
+
+df[(df['year']== '2022') & (df['eco']== 'C45')].head() 
+
+# Create the denominator of the weighted average 
+df['weights_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['weights'].transform("sum")
+
+
+# Create the 
+
+df[(df['year']== '2022') & (df['eco']== 'C45')].head()
+
+df_output_1= df[(df['year']== '2022') & (df['eco']== 'C45')]
+df_output_2= df[(df['year']== '2011') & (df['eco']== 'B50')]
+
+df_output= pd.concat([df_output_1, df_output_2])
+
+
+df_output.to_excel('df_output.xlsx') 
+
+
+
+######################
+
+
 df['white_wins_weighted_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['white_wins_weighted'].apply(lambda x: x.sum())
+
+
 
 
 df['white_wins_weighted_sum']= df.groupby(['year', 'time_control', 'eco'], group_keys=False)['white_wins_weighted'].apply(lambda x: x.sum()).values
