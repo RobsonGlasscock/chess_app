@@ -11,7 +11,7 @@ pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
 # Define the player's name.
-pn = "RaeKwan"
+pn = "RichardShtivelband"
 # The chess.com player name in the url path is lowercase. Convert to lower here.
 player_name = pn.lower()
 
@@ -558,6 +558,39 @@ for i in df['eco'].values:
 df.head()
 
 df['year_time_eco_count']= df.groupby(['year', 'time_control', 'eco'])['eco'].transform(len)
+
+# include color to the count
+df['year_time_eco_count_2']= df.groupby(['year', 'time_control', 'eco', 'color'])['eco'].transform(len)
+
+
+df.head()
+
+# Create a weighting variable 
+df['white_wins_ranked']= df['white_wins'] * df['year_time_eco_count']
+df.head()
+
+df['white_wins_ranked_2']= df['white_wins'] * df['year_time_eco_count_2']
+
+# White wins ranked
+
+df.groupby(["year", "time_control", 'eco'])["white_wins_ranked_2"].describe().sort_values(by=[ 'year', 'time_control', 'mean'], ascending=False).to_excel("richard_white_wins_ranked_2.xlsx")
+
+
+df.groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=[ 'year', 'time_control', 'count', 'mean'], ascending=False)
+
+# White losses ranked 
+df['white_losses_ranked']= df['white_losses'] * df['year_time_eco_count']
+df.head()
+df['white_losses_ranked_2']= df['white_losses'] * df['year_time_eco_count_2']
+
+
+df.groupby(["year", "time_control", 'eco'])["white_losses_ranked"].describe().sort_values(by=[ 'year', 'time_control', 'mean'], ascending=False).to_excel('richard_white_losses_ranked.xlsx')
+
+df.groupby(["year", "time_control", 'eco'])["white_losses_ranked_2"].describe().sort_values(by=[ 'year', 'time_control', 'mean'], ascending=False).to_excel('richard_white_losses_ranked_2.xlsx')
+
+
+
+
 
 df['weights']= df['year_time_eco_count'] / df['ann_count']
 
