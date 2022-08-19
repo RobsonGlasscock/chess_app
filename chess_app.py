@@ -676,9 +676,66 @@ df_black.head()
 
 df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
 
+# Per manual inspection, for 2022, 3 minutes, RichardShtivelband's highest win over # loss spread was for: 
+# B01 (11 and 38 games), 
+# B00 (11 and 28 games), 
+# C10 (10 and 16 games)
+# B06 (9 and 41 games), 
+# B07 (9 and 34 games). 
+
+# Contrast this to the results below from sorting on white_wins
+
 df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
 
-# explore 2022, 3 minutes B01, B00 (top white_cumul) and A43, C05 (top white_wins)
+# Per manual inspection, for 2022, 3 minute games for RichardShtivelband:
+# A43 (1.0, and 6 games)
+# C05 (1.0 and 5 games)
+# C64 (1.0 and 5 games)
+# A49 (1.0 and 3 games)
+# B20 (1.0 and 3 games)
+# These are openings he didn't play very much of but had very high win rates. I don't
+# think these results are as intersting as the white_cumul_sum results. 
+
+# For RichardShtiveland's worst white openings for 2022, 3 minutes: 
+df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=True)
+
+# B50 (-6 and 14 games)
+# B76 (-5 and 11 games)
+# E61 (-3 and 4 games)
+# C40 (-3 and 5 games)
+# C45 (-3 and 5 games)
+
+# For RichardShtiveland's best black openings for 2022, 3 minutes: 
+df_black[df_black['year']=="2022"].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+
+# C55 (9 and 20 games)
+# A00 (8 and 30 games)
+# C42 (6 and 7 games)
+# E12 (6 and 6 games)
+# E20 (5 and 20 games)
+
+# For RichardShtivelband's worst black openings for 2022, 3 minutes:
+df_black[df_black['year']=="2022"].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=True)
+
+# D11 (-9 and 26 games)
+# D10 (-8 and 33 games)
+# B44 (-6 and 13 games)
+# A07 (-6 and 20 games)
+# B22 (-6 and 22 games)
+
+df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11') & (df_black['time_control']== '3 minutes')]
+
+df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11') & (df_black['time_control']== '3 minutes')].shape
+
+df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11') & (df_black['time_control']== '3 minutes')]['black_cumul_sum'].describe()
+
+df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11') & (df_black['time_control']== '3 minutes')].head()
+
+
+df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11') & (df_black['time_control']== '3 minutes')].tail()
+
+df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11') & (df_black['time_control']== '3 minutes')].iloc[12:17]
+
 
 df_white[(df_white['year']=="2022") & (df_white['time_control']=="3 minutes")].to_excel('three_min.xlsx')
 
