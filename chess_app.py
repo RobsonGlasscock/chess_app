@@ -304,6 +304,20 @@ The third Time control field kind is formed as two positive integers separated b
 df.head(10)
 df.info()
 
+# Create separate df's from white games and black games where draws are excluded. 
+# Use these to create the dummy variables. As shown below, Richard's white_win
+# dummy for 2022, D02 shows 0.09 for 84 games, but this 
+# is misleading because he was white in 16 of these games and black in 68 of them.
+# My win and loss dummies don't actually work for the combined dataframe. One way
+# # I wanted to get around this was to create a cumulative count variable that
+# increments white wins +1 and decrements for white losses. This would show the 
+# "spread" of wins over losses or losses over wins.  
+
+df_white= df[df['color']=='white'].copy(deep=True)
+df_black= df[df["color"]=='black'].copy(deep=True)
+
+assert df_white.shape[0] + df_black.shape[0]== df.shape[0]
+
 # Create functions for the following variables: white wins, white losses, black wins,
 # black losses, white draws, black draws.                                                                                                                                                                    
 def white_wins(df):
@@ -359,6 +373,7 @@ def black_cumul(df):
         return -1 
     else: return 0
 
+# Create vars for combined df. 
 df['white_wins']= df.apply(white_wins, axis=1)
 df['black_wins']= df.apply(black_wins, axis=1)
 df['white_losses']= df.apply(white_losses, axis=1)
@@ -369,8 +384,20 @@ df['black_draws']= df.apply(black_draws, axis=1)
 df['white_cumul']= df.apply(white_cumul, axis=1)
 df['black_cumul']= df.apply(black_cumul, axis=1)
 
-df.head()
+# Create vars for df's of white and black games only. I think draws should also be included in these datasets and will have 0's for the wins dummies. 
 
+df_white['white_wins']= df_white.apply(white_wins, axis=1)
+df_black['black_wins']= df_black.apply(black_wins, axis=1)
+df_white['white_losses']= df_white.apply(white_losses, axis=1)
+df_black['black_losses']= df_black.apply(black_losses, axis=1)
+df_white['white_draws']= df_white.apply(white_draws, axis=1)
+df_black['black_draws']= df_black.apply(black_draws, axis=1)
+
+df_white['white_cumul']= df_white.apply(white_cumul, axis=1)
+df_black['black_cumul']= df_black.apply(black_cumul, axis=1)
+
+
+df.head()
 
 df[['player', 'rating', 'result', 'white_wins', 'black_wins', 'white_losses', 'black_losses', 'white_draws', 'black_draws']].head()
 
@@ -392,13 +419,20 @@ df[df['result'].str.contains('1-0')][['player', 'rating', 'result', 'white_wins'
 
 # Overwrite the data variable with just the data component
 df["date"] = df["date"].apply(lambda x: x[-12:-2])
+df_white['date']= df_white['date'].apply(lambda x: x[-12:-2])
+df_black['date']= df_black['date'].apply(lambda x: x[-12:-2])
+
 # Overwrite the player variabele to just contain the name.
 df["player"] = df["player"].apply(lambda x: x[8:-2])
+df_white["player"] = df_white["player"].apply(lambda x: x[8:-2])
+df_black["player"] = df_black["player"].apply(lambda x: x[8:-2])
 
 df.head()
 
 # Retain the numeric portion of the rating.
 df["rating"] = df["rating"].apply(lambda x: x[-6:-2])
+df_white["rating"] = df_white["rating"].apply(lambda x: x[-6:-2])
+df_black["rating"] = df_black["rating"].apply(lambda x: x[-6:-2])
 
 # Ratings under < 1,000 have a leading "
 # Define a function to remove the leading "
@@ -411,13 +445,18 @@ def stripper(x):
 
 # Apply the function to the dataframe to deal with the sub 1,000 ratings.
 df["rating"] = df["rating"].apply(stripper)
-
 df["rating"] = df["rating"].astype(int)
 
-df.head()
-df.tail()
+# for the white df
+df_white["rating"] = df_white["rating"].apply(stripper)
+df_white["rating"] = df_white["rating"].astype(int)
+
+# for the black df 
+df_black["rating"] = df_black["rating"].apply(stripper)
+df_black["rating"] = df_black["rating"].astype(int)
 
 # Remove the unnecessary components of the string.
+
 df["time_control"] = df["time_control"].apply(
     lambda x: x.replace("TimeControl", "")
 )
@@ -425,6 +464,21 @@ df["time_control"] = df["time_control"].apply(lambda x: x.replace('"', ""))
 df["time_control"] = df["time_control"].apply(lambda x: x.replace("[", ""))
 df["time_control"] = df["time_control"].apply(lambda x: x.replace("]", ""))
 
+# for the white df 
+df_white["time_control"] = df_white["time_control"].apply(
+    lambda x: x.replace("TimeControl", "")
+)
+df_white["time_control"] = df_white["time_control"].apply(lambda x: x.replace('"', ""))
+df_white["time_control"] = df_white["time_control"].apply(lambda x: x.replace("[", ""))
+df_white["time_control"] = df_white["time_control"].apply(lambda x: x.replace("]", ""))
+
+# For the black df 
+df_black["time_control"] = df_black["time_control"].apply(
+    lambda x: x.replace("TimeControl", "")
+)
+df_black["time_control"] = df_black["time_control"].apply(lambda x: x.replace('"', ""))
+df_black["time_control"] = df_black["time_control"].apply(lambda x: x.replace("[", ""))
+df_black["time_control"] = df_black["time_control"].apply(lambda x: x.replace("]", ""))
 
 # Remove the unnecessary components of the string.
 df["eco"] = df["eco"].apply(
@@ -434,6 +488,25 @@ df["eco"] = df["eco"].apply(
 df["eco"] = df["eco"].apply(lambda x: x.replace('"', ""))
 df["eco"] = df["eco"].apply(lambda x: x.replace(']', ""))
 df["eco"] = df["eco"].apply(lambda x: x.strip())
+
+# for the white df 
+df_white["eco"] = df_white["eco"].apply(
+    lambda x: x.replace("[ECO", "")
+)
+
+df_white["eco"] = df_white["eco"].apply(lambda x: x.replace('"', ""))
+df_white["eco"] = df_white["eco"].apply(lambda x: x.replace(']', ""))
+df_white["eco"] = df_white["eco"].apply(lambda x: x.strip())
+
+# for the black df 
+df_black["eco"] = df_black["eco"].apply(
+    lambda x: x.replace("[ECO", "")
+)
+
+df_black["eco"] = df_black["eco"].apply(lambda x: x.replace('"', ""))
+df_black["eco"] = df_black["eco"].apply(lambda x: x.replace(']', ""))
+df_black["eco"] = df_black["eco"].apply(lambda x: x.strip())
+
 
 df["eco_desc"] = df["eco_desc"].apply(
     lambda x: x.strip()
@@ -451,12 +524,60 @@ df["eco_desc"] = df["eco_desc"].apply(
     lambda x: x.replace(']', "")
 )
 
+# For the white df 
+df_white["eco_desc"] = df_white["eco_desc"].apply(
+    lambda x: x.strip()
+)
+
+df_white["eco_desc"] = df_white["eco_desc"].apply(
+    lambda x: x.replace('[ECOUrl "https://www.chess.com/openings/', "")
+)
+
+df_white["eco_desc"] = df_white["eco_desc"].apply(
+    lambda x: x.replace('"', "")
+)
+
+df_white["eco_desc"] = df_white["eco_desc"].apply(
+    lambda x: x.replace(']', "")
+)
+
+# for the black df 
+
+df_black["eco_desc"] = df_black["eco_desc"].apply(
+    lambda x: x.strip()
+)
+
+df_black["eco_desc"] = df_black["eco_desc"].apply(
+    lambda x: x.replace('[ECOUrl "https://www.chess.com/openings/', "")
+)
+
+df_black["eco_desc"] = df_black["eco_desc"].apply(
+    lambda x: x.replace('"', "")
+)
+
+df_black["eco_desc"] = df_black["eco_desc"].apply(
+    lambda x: x.replace(']', "")
+)
+
+
 # Create a year variable.
 df["year"] = df["date"].apply(lambda x: x[:4])
-df["year"].value_counts()
+df_white["year"] = df_white["date"].apply(lambda x: x[:4])
+df_black["year"] = df_black["date"].apply(lambda x: x[:4])
+
 
 # Create an annual count variable for each year-time_control.
 df["ann_count"] = df.groupby(["year", "time_control"])["rating"].transform(
+    len
+)
+
+# for white df 
+df_white["ann_count"] = df_white.groupby(["year", "time_control"])["rating"].transform(
+    len
+)
+
+# for black df 
+df_black["ann_count"] = df_black.groupby(["year", "time_control"])["rating"].transform(
     len
 )
 
@@ -468,12 +589,11 @@ df.reset_index(drop=True, inplace=True)
 
 df["ann_count"].value_counts()
 
+'''
 # Judgement call to remove any time control with less than 12 games per year.
 df.drop(df[df["ann_count"] < 12].index, inplace=True)
-df.shape
 
-df["time_control"].value_counts()
-
+'''
 
 def time_convert(col):
     if col.strip() == "180":
@@ -521,7 +641,13 @@ def time_convert(col):
 
 df["time_control"] = df["time_control"].apply(time_convert)
 
-df.head()
+# for the white df 
+df_white["time_control"] = df_white["time_control"].apply(time_convert)
+
+# for the black df
+df_black["time_control"] = df_black["time_control"].apply(time_convert)
+
+
 
 # rg: box and whiskser plot off the df dataframe?????
 
@@ -533,14 +659,28 @@ df['white_cumul_sum']= df.groupby(["year", "time_control", "eco"])['white_cumul'
 
 df['black_cumul_sum']= df.groupby(["year", "time_control", "eco"])['black_cumul'].transform('sum')
 
-df.head(10)
+# for white df 
+df_white['white_cumul_sum']= df_white.groupby(["year", "time_control", "eco"])['white_cumul'].transform('sum')
+
+# for the black df 
+df_black['black_cumul_sum']= df_black.groupby(["year", "time_control", "eco"])['black_cumul'].transform('sum')
+
+
 
 df['white_cumul_sum'].describe()
 df['black_cumul_sum'].describe()
 
+df_white.head()
+df_black.head()
 
 
-df[df['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+
+df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+
+# explore 2022, 3 minutes B01, B00 (top white_cumul) and A43, C05 (top white_wins)
+
+df_white[(df_white['year']=="2022") & (df_white['time_control']=="3 minutes")].to_excel('three_min.xlsx')
 
 
 df.groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).to_excel('white_cumul_sum.xlsx')
@@ -555,6 +695,7 @@ df[(df['year']=="2022") & (df['eco']=="D02")]['color'].value_counts()
 # Richard has a white_win dummy for this opening of 0.09 for 84 games, but this 
 # is misleading because he was white in 16 of these games and black in 68 of them.
 # My win and loss dummies don't actually work.  
+8/84
 
 df["white_cumul"][(df['year']== '2022') & (df['eco']== 'C45') & (df["time_control"]=='15 minutes + 10')].sum()
 
