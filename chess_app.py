@@ -310,7 +310,7 @@ def white_wins(df):
     if ('White' in df['player']) and ("1-0" in df['result']):
         return 1 
     else: 
-        return 0 
+        return 0        
 
 def black_wins(df):
     if ('Black' in df['player']) and ("0-1" in df['result']):
@@ -342,12 +342,34 @@ def black_draws(df):
     else: 
         return 0 
 
+# Create cumulative counts where wins =+1 and losses =-1
+
+def white_cumul(df):
+    if ('White' in df['player']) and ("1-0" in df['result']):
+        return 1
+    if ('White' in df['player']) and ("0-1" in df['result']):
+        return -1 
+    else:
+        return 0
+
+def black_cumul(df):
+    if ('Black' in df['player']) and ("0-1" in df['result']):
+        return 1 
+    if ('Black' in df['player']) and ("1-0" in df['result']):
+        return -1 
+    else: return 0
+
 df['white_wins']= df.apply(white_wins, axis=1)
 df['black_wins']= df.apply(black_wins, axis=1)
 df['white_losses']= df.apply(white_losses, axis=1)
 df['black_losses']= df.apply(black_losses, axis=1)
 df['white_draws']= df.apply(white_draws, axis=1)
 df['black_draws']= df.apply(black_draws, axis=1)
+
+df['white_cumul']= df.apply(white_cumul, axis=1)
+df['black_cumul']= df.apply(black_cumul, axis=1)
+
+df.head()
 
 
 df[['player', 'rating', 'result', 'white_wins', 'black_wins', 'white_losses', 'black_losses', 'white_draws', 'black_draws']].head()
@@ -504,6 +526,39 @@ df.head()
 # rg: box and whiskser plot off the df dataframe?????
 
 df.groupby(["year", "time_control"])["rating"].describe()
+
+
+# Create cumulative sums for white and black by eco. This uses the +1 for wins and -1 for losses. 
+df['white_cumul_sum']= df.groupby(["year", "time_control", "eco"])['white_cumul'].transform('sum')
+
+df['black_cumul_sum']= df.groupby(["year", "time_control", "eco"])['black_cumul'].transform('sum')
+
+df.head(10)
+
+df['white_cumul_sum'].describe()
+df['black_cumul_sum'].describe()
+
+
+
+df[df['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+
+
+df.groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).to_excel('white_cumul_sum.xlsx')
+
+df.groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).to_excel('black_cumul_sum.xlsx')
+
+
+
+df[(df['year']=="2022") & (df['eco']=="D02")].to_excel('d02.xlsx')
+
+df[(df['year']=="2022") & (df['eco']=="D02")]['color'].value_counts()
+# Richard has a white_win dummy for this opening of 0.09 for 84 games, but this 
+# is misleading because he was white in 16 of these games and black in 68 of them.
+# My win and loss dummies don't actually work.  
+
+df["white_cumul"][(df['year']== '2022') & (df['eco']== 'C45') & (df["time_control"]=='15 minutes + 10')].sum()
+
+
 
 
 df.groupby(["year", "time_control", 'eco'])["white_wins"].describe()
