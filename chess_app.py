@@ -723,6 +723,128 @@ df_black[df_black['year']=="2022"].groupby(["year", "time_control", 'eco'])["bla
 # A07 (-6 and 20 games)
 # B22 (-6 and 22 games)
 
+# Create the weighting Richard recommended:
+# (0.5 x (white_cumul_sum / white_cumul_max) ) + (0.5 x (white_wins / white_wins_max) )
+
+# What the above does, conceptually, is gives equal weights of 50% to the cumulative wins over losses and percentage of games won in the opening, then divides by the maximum of each of these variables to figure out a percentage that is then multiplied by the 50% weight to allocate X percent of of the 50% weight to the opening. Note that any opening with the maximum cumulative wins over losses or a 1.0 accuracy will mathematically be 0.5 x 1 and will allocate all 50% of the weight to that particular opening. Openings that are not the max wins over losses or that do not have the maximum win rate, which is probably 100%, will allocate less than that 50% of the weight to that opening. 
+
+# For the white dataframe
+
+# The cumulative wins over losses is over the year-time_control but not also grouped by eco.
+df_white['white_cumul_max']= df_white.groupby(['year', 'time_control'])['white_cumul_sum'].transform('max')
+
+# the sum of white wins and the length are with respect to the eco, as well. So the grouping is year, time_control, and eco. 
+df_white['white_wins_sum']= df_white.groupby(['year', 'time_control', 'eco'])['white_wins'].transform('sum')
+
+df_white['white_len']= df_white.groupby(['year', 'time_control', 'eco'])['white_wins'].transform(len)
+
+df_white['white_wins_mean']= df_white['white_wins_sum'] / df_white['white_len']
+
+df_white['white_wins_mean_max']= df_white.groupby(['year', 'time_control'])['white_wins_mean'].transform('max')
+
+# For the black dataframe
+
+# The cumulative wins over losses is over the year-time_control but not also grouped by eco.
+df_black['black_cumul_max']= df_black.groupby(['year', 'time_control'])['black_cumul_sum'].transform('max')
+
+# the sum of black wins and the length are with respect to the eco, as well. So the grouping is year, time_control, and eco. 
+df_black['black_wins_sum']= df_black.groupby(['year', 'time_control', 'eco'])['black_wins'].transform('sum')
+
+df_black['black_len']= df_black.groupby(['year', 'time_control', 'eco'])['black_wins'].transform(len)
+
+df_black['black_wins_mean']= df_black['black_wins_sum'] / df_black['black_len']
+
+df_black['black_wins_mean_max']= df_black.groupby(['year', 'time_control'])['black_wins_mean'].transform('max')
+
+# Accuracy check for 2022, 3 minutes, D02. 
+df_white[(df_white['year']=="2022") & (df_white['eco']=="D02") & (df_white['time_control']=="3 minutes")].to_excel('d02_white_check.xlsx')
+
+
+df_black[(df_black['year']=="2022") & (df_black['eco']=="D02") & (df_black['time_control']=="3 minutes")].to_excel('d02_black_check.xlsx')
+
+
+df_black[(df_black['year']=="2022") & (df_black['eco']=="D02") & (df_black['time_control']=="3 minutes")].shape
+
+ 
+df_white[(df_white['year']=="2022") & (df_white['eco']=="D02") & (df_white['time_control']=="3 minutes")].shape
+
+# No exceptions noted. 
+
+
+df_white.head()
+
+# Create weighting vars
+
+df_white['weighted_calc']= (0.5 * (df_white['white_cumul_sum']/ df_white['white_cumul_max'] ) + (0.5 * (df_white['white_wins_mean']/ df_white['white_wins_mean_max'])))
+
+
+df_white.head()
+
+# Sort results on weighted 
+df_white[df_white['year']=='2022'].groupby(['year', 'time_control', 'eco'])['weighted_calc'].describe().sort_values(by=['year', 'time_control', 'mean'], ascending=False)
+
+
+# Sort results on cumluative wins over losses
+df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+
+
+# Here is a breakdown of the ECO's that are white's best openigns:
+# B01 - on both sorts
+# B00 - on both sorts 
+# C10 - on both sorts 
+# B06- on cumulative wins over losses but not on weighted
+# B07 - on cumulative wins over losses but not on weighted 
+# A43 - on weighted but not on cumulative wins over losses
+# E70 - on weighted but not on cumulative wins over losses 
+
+
+# per below white_wins_mean should be equal to white_wins mean. 
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')]['white_wins_mean'].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')]['white_wins'].describe()
+
+
+# Look at each ECO listed above for win rates 
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B00')]['white_wins'].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='C10')]['white_wins'].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B06')]['white_wins'].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B07')]['white_wins'].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='A43')]['white_wins'].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='E70')]['white_wins'].describe()
+
+
+# Get the maximum cumulative wins over losses and win rates for each opening
+
+df_white.head()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')][['white_cumul_max', 'white_wins_mean_max']].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B00')][['white_cumul_max', 'white_wins_mean_max']].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='C10')][['white_cumul_max', 'white_wins_mean_max']].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B06')][['white_cumul_max', 'white_wins_mean_max']].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B07')][['white_cumul_max', 'white_wins_mean_max']].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='A43')][['white_cumul_max', 'white_wins_mean_max']].describe()
+
+df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='E70')][['white_cumul_max', 'white_wins_mean_max']].describe()
+
+
+# Note that the above all have the same values, which makes sense. These are 11 for the cumulative wins over losses maximum and white_wins_mean_max. These are at the year- time_control level so these should be the same. p/f/r. 
+
+
+# No exceptions noted. 
+df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11')]['black_wins'].describe().loc['mean']
+
+
+
 df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11') & (df_black['time_control']== '3 minutes')]
 
 df_black[(df_black['year']=='2022') & (df_black['eco']== 'D11') & (df_black['time_control']== '3 minutes')].shape
@@ -748,11 +870,12 @@ df.groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_v
 
 df[(df['year']=="2022") & (df['eco']=="D02")].to_excel('d02.xlsx')
 
-df[(df['year']=="2022") & (df['eco']=="D02")]['color'].value_counts()
-# Richard has a white_win dummy for this opening of 0.09 for 84 games, but this 
-# is misleading because he was white in 16 of these games and black in 68 of them.
-# My win and loss dummies don't actually work.  
-8/84
+
+df[(df['year']=="2022") & (df['eco']=="D02") & (df['time_control']=="3 minutes")]['white_wins'].describe()
+
+df[(df['year']=="2022") & (df['eco']=="D02") & (df['time_control']=="3 minutes")]['color'].value_counts()
+
+# Richard had a 0.096 win rate with the white_win dummy for the entire dataframe because the 67 games he played as black all had 0's! This is wrong. He actually had a 50% win rate for this 16 white games. So half of 16 is 8 and 8/ (16 + 67) = 0.096 but this is totally wrong and shows why the dataframes need to be split into white and black dataframes before win dummies can be assigned! 
 
 df["white_cumul"][(df['year']== '2022') & (df['eco']== 'C45') & (df["time_control"]=='15 minutes + 10')].sum()
 
