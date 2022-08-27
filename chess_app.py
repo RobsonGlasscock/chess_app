@@ -1105,7 +1105,10 @@ plt.scatter(
     ].values,
 )
 
+'''TODO: remove this hardcode below! '''
 pn = "RichardShtivelband"
+
+'''TODO: How to modify this code for user input of year and time control? Do I still need this summary df? I think I do.... not sure though.'''
 # Loop for graphs
 for i in df_export.index.get_level_values(1).unique():
     title_str = pn + " " + i
@@ -1120,5 +1123,57 @@ for i in df_export.index.get_level_values(1).unique():
     plt.title(title_str)
     plt.show()
 
+# Box and whisker plots 
 
+df[df['time_control']=='3 minutes']['rating'].groupby(df['year']).describe().index
 
+# Initialize an empty list and put the year indeices for the time control into the list. 
+year_idx=[]
+for i in df[df['time_control']=='3 minutes']['rating'].groupby(df['year']).describe().index:
+    year_idx.append(i)
+
+year_idx
+
+# Create an empty dictionary and then put values of the rating series for the year and time control into a dictionary with the key equal to the string of col_year and the values equal to the series. This step also includes creating a list of the x_labels and the default box plot integers for creating an x axis on the box plots with the years rather than 1, 2, 3, etc. 
+dicter= {}
+x_labels=[]
+x_ints= []
+for i, j in enumerate(df[df['time_control']=='3 minutes']['rating'].groupby(df['year']).describe().index):
+    name = 'col' + '_' + str(j)
+    x_labels.append(str(j))
+    x_ints.append(i+1)
+    print(name)
+    key= name
+    values= df[(df['time_control']== '3 minutes') & (df['year']==j)]['rating']
+    dicter[key] = values
+
+dicter.keys()
+
+# Look at the values for an example key of the dicter
+dicter['col_2019'].head()
+dicter['col_2019'].shape
+
+type(dicter['col_2019'])
+
+# Create a list of np arrays for the values of the series of the ratings for each year. 
+cols= []
+for i in dicter.keys():
+    cols.append(dicter[i].values)
+
+cols
+
+type(cols[0])
+
+# Per above, the list contains numpy arrays for each year. 
+
+# Create the graph which plots each of the arrays as a separate box plot. 
+fig, ax= plt.subplots()
+ax.boxplot(cols)
+plt.xticks(x_ints, x_labels)
+plt.title(pn)
+plt.show()
+
+x_ints
+x_labels
+
+df[(df['year']==2021) & (df['time_control']=='3 minutes')]['rating'].describe()
