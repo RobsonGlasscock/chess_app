@@ -1063,8 +1063,6 @@ worst_white_df
 best_black_df
 worst_black_df
 
-#######################
-
 df_export = df.groupby(["year", "time_control"])["rating"].describe().round()
 df_export
 df_export.info()
@@ -1083,8 +1081,6 @@ df_export.index.get_level_values(1)
 
 # Per above, the index repeats if he played the same time controls in different years. Use .unique to handle this.
 
-df_export["mean"].loc[[("2018", "1 minute"), ("2020", "1 minute")]]
-
 df_export[df_export.index.get_level_values(1) == "3 minutes"]
 
 for i in df_export.index.get_level_values(1).unique():
@@ -1093,11 +1089,6 @@ for i in df_export.index.get_level_values(1).unique():
 
 
 df_export["mean"][df_export.index.get_level_values(1) == "3 minutes"]
-
-df_export["mean"][df_export.index.get_level_values(1) == "3 minutes"].loc[
-    "2018", "3 minutes"
-]
-
 
 df_export["mean"][df_export.index.get_level_values(1) == "3 minutes"].values
 
@@ -1114,7 +1105,7 @@ plt.scatter(
     ].values,
 )
 
-
+pn = "RichardShtivelband"
 # Loop for graphs
 for i in df_export.index.get_level_values(1).unique():
     title_str = pn + " " + i
