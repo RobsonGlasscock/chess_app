@@ -1,4 +1,5 @@
 %reset -f
+from re import T
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -10,6 +11,7 @@ start = time.time()
 pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
+'''
 # Define the player's name.
 pn = "RichardShtivelband"
 # The chess.com player name in the url path is lowercase. Convert to lower here.
@@ -589,11 +591,9 @@ df.reset_index(drop=True, inplace=True)
 
 df["ann_count"].value_counts()
 
-'''
 # Judgement call to remove any time control with less than 12 games per year.
 df.drop(df[df["ann_count"] < 12].index, inplace=True)
 
-'''
 
 def time_convert(col):
     if col.strip() == "180":
@@ -674,18 +674,38 @@ df_white.head()
 df_black.head()
 
 
-df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+# Richard is still playing games in 2022, so to avoid what I'm writing changing based on his new games, I saved data in /home/robson/chess_app/output/8_26 on 8_26. I am going to read in these files here
+
+df.to_csv('/home/robson/chess_app/output/8_26/df.csv', index=False)
+df_white.to_csv('/home/robson/chess_app/output/8_26/df_white.csv', index=False)
+df_black.to_csv('/home/robson/chess_app/output/8_26/df_black.csv', index=False)
+
+'''
+df= pd.read_csv('/home/robson/chess_app/output/8_26/df.csv')
+df_white= pd.read_csv('/home/robson/chess_app/output/8_26/df_white.csv')
+df_black= pd.read_csv('/home/robson/chess_app/output/8_26/df_black.csv')
+
+
+
+
+df.head()
+df_white.head()
+df_white.tail()
+df_black.head()
+
+
+df_white[df_white['year']==2022].groupby(['year', "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
 
 # Per manual inspection, for 2022, 3 minutes, RichardShtivelband's highest win over # loss spread was for: 
+# B06 (11 and 43 games),
 # B01 (11 and 38 games), 
-# B00 (11 and 28 games), 
-# C10 (10 and 16 games)
-# B06 (9 and 41 games), 
-# B07 (9 and 34 games). 
+# B00 (11 and 28 games),
+# B07 (10 and 35 games) 
+# C10 (10 and 17 games) 
 
 # Contrast this to the results below from sorting on white_wins
 
-df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+df_white[df_white['year']==2022].groupby(["year", "time_control", 'eco'])["white_wins"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
 
 # Per manual inspection, for 2022, 3 minute games for RichardShtivelband:
 # A43 (1.0, and 6 games)
@@ -697,31 +717,32 @@ df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["whi
 # think these results are as intersting as the white_cumul_sum results. 
 
 # For RichardShtiveland's worst white openings for 2022, 3 minutes: 
-df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=True)
+df_white[df_white['year']==2022].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=[True, True, True, False])
 
 # B50 (-6 and 14 games)
 # B76 (-5 and 11 games)
-# E61 (-3 and 4 games)
-# C40 (-3 and 5 games)
-# C45 (-3 and 5 games)
+# B90 (-3 and 43 games)
+# C44 (-3 and 7 games)
+# A53 (-3 and 6 games) 
+
 
 # For RichardShtiveland's best black openings for 2022, 3 minutes: 
-df_black[df_black['year']=="2022"].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+df_black[df_black['year']==2022].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
 
-# C55 (9 and 20 games)
-# A00 (8 and 30 games)
-# C42 (6 and 7 games)
-# E12 (6 and 6 games)
-# E20 (5 and 20 games)
+# C55 (10 and 21 games)
+# A00 (7 and 31 games)
+# C42 (8 and 7 games)
+# E12 (7 and 7 games)
+# E00 (5 and 20 games) - tied with E20
 
 # For RichardShtivelband's worst black openings for 2022, 3 minutes:
-df_black[df_black['year']=="2022"].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=True)
+df_black[df_black['year']==2022].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=[True, True, True, False])
 
 # D11 (-9 and 26 games)
-# D10 (-8 and 33 games)
-# B44 (-6 and 13 games)
-# A07 (-6 and 20 games)
+# D10 (-7 and 34 games)
 # B22 (-6 and 22 games)
+# B44 (-6 and 13 games)
+# B40 (-5 and 23 games)
 
 # Create the weighting Richard recommended:
 # (0.5 x (white_cumul_sum / white_cumul_max) ) + (0.5 x (white_wins / white_wins_max) )
@@ -757,16 +778,16 @@ df_black['black_wins_mean']= df_black['black_wins_sum'] / df_black['black_len']
 df_black['black_wins_mean_max']= df_black.groupby(['year', 'time_control'])['black_wins_mean'].transform('max')
 
 # Accuracy check for 2022, 3 minutes, D02. 
-df_white[(df_white['year']=="2022") & (df_white['eco']=="D02") & (df_white['time_control']=="3 minutes")].to_excel('d02_white_check.xlsx')
+df_white[(df_white['year']==2022) & (df_white['eco']=="D02") & (df_white['time_control']=="3 minutes")].to_excel('d02_white_check.xlsx')
 
 
-df_black[(df_black['year']=="2022") & (df_black['eco']=="D02") & (df_black['time_control']=="3 minutes")].to_excel('d02_black_check.xlsx')
+df_black[(df_black['year']==2022) & (df_black['eco']=="D02") & (df_black['time_control']=="3 minutes")].to_excel('d02_black_check.xlsx')
 
 
-df_black[(df_black['year']=="2022") & (df_black['eco']=="D02") & (df_black['time_control']=="3 minutes")].shape
+df_black[(df_black['year']==2022) & (df_black['eco']=="D02") & (df_black['time_control']=="3 minutes")].shape
 
  
-df_white[(df_white['year']=="2022") & (df_white['eco']=="D02") & (df_white['time_control']=="3 minutes")].shape
+df_white[(df_white['year']==2022) & (df_white['eco']=="D02") & (df_white['time_control']=="3 minutes")].shape
 
 # No exceptions noted. 
 
@@ -781,110 +802,145 @@ df_white['weighted_calc']= (0.5 * (df_white['white_cumul_sum']/ df_white['white_
 df_white.head()
 
 # Sort results on weighted 
-df_white[df_white['year']=='2022'].groupby(['year', 'time_control', 'eco'])['weighted_calc'].describe().sort_values(by=['year', 'time_control', 'mean'], ascending=False)
+df_white[df_white['year']==2022].groupby(['year', 'time_control', 'eco'])['weighted_calc'].describe().sort_values(by=['year', 'time_control', 'mean'], ascending=False)
 
 
 # Sort results on cumluative wins over losses
-df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+df_white[df_white['year']==2022].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
 
 
 # Here is a breakdown of the ECO's that are white's best openigns:
 # B01 - on both sorts
 # B00 - on both sorts 
 # C10 - on both sorts 
-# B06- on cumulative wins over losses but not on weighted
+# B06- on both sorts
 # B07 - on cumulative wins over losses but not on weighted 
 # A43 - on weighted but not on cumulative wins over losses
-# E70 - on weighted but not on cumulative wins over losses 
 
 
 # per below white_wins_mean should be equal to white_wins mean. 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')]['white_wins_mean'].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')]['white_wins_mean'].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')]['white_wins'].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')]['white_wins'].describe()
 
 
 # Look at each ECO listed above for win rates 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B00')]['white_wins'].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B00')]['white_wins'].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='C10')]['white_wins'].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='C10')]['white_wins'].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B06')]['white_wins'].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B06')]['white_wins'].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B07')]['white_wins'].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B07')]['white_wins'].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='A43')]['white_wins'].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='A43')]['white_wins'].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='E70')]['white_wins'].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='E70')]['white_wins'].describe()
 
 
 # Get the maximum cumulative wins over losses andq win rates for each opening
 
 df_white.head()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')][['white_cumul_max', 'white_wins_mean_max']].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B01')][['white_cumul_max', 'white_wins_mean_max']].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B00')][['white_cumul_max', 'white_wins_mean_max']].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B00')][['white_cumul_max', 'white_wins_mean_max']].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='C10')][['white_cumul_max', 'white_wins_mean_max']].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='C10')][['white_cumul_max', 'white_wins_mean_max']].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B06')][['white_cumul_max', 'white_wins_mean_max']].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B06')][['white_cumul_max', 'white_wins_mean_max']].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B07')][['white_cumul_max', 'white_wins_mean_max']].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='B07')][['white_cumul_max', 'white_wins_mean_max']].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='A43')][['white_cumul_max', 'white_wins_mean_max']].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='A43')][['white_cumul_max', 'white_wins_mean_max']].describe()
 
-df_white[(df_white['year']=='2022') & (df_white['time_control']== '3 minutes') & (df_white['eco']=='E70')][['white_cumul_max', 'white_wins_mean_max']].describe()
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']=='E70')][['white_cumul_max', 'white_wins_mean_max']].describe()
 
 
 # Note that the above all have the same values, which makes sense. These are 11 for the cumulative wins over losses maximum and white_wins_mean_max. These are at the year- time_control level so these should be the same. p/f/r. 
 
 # No exceptions noted. 
 
-df[(df['year']=="2022") & (df['eco']=="D02") & (df['time_control']=="3 minutes")]['white_wins'].describe()
+df[(df['year']==2022) & (df['eco']=="D02") & (df['time_control']=="3 minutes")]['white_wins'].describe()
 
-df[(df['year']=="2022") & (df['eco']=="D02") & (df['time_control']=="3 minutes")]['color'].value_counts()
+df[(df['year']==2022) & (df['eco']=="D02") & (df['time_control']=="3 minutes")]['color'].value_counts()
 
-# Richard had a 0.096 win rate with the white_win dummy for the entire dataframe because the 67 games he played as black all had 0's! This is wrong. He actually had a 50% win rate for this 16 white games. So half of 16 is 8 and 8/ (16 + 67) = 0.096 but this is totally wrong and shows why the dataframes need to be split into white and black dataframes before win dummies can be assigned! 
+# Richard had a 0.095 win rate with the white_win dummy for the entire dataframe because the 67 games he played as black all had 0's! This is wrong. He actually had a 50% win rate for this 16 white games. So half of 16 is 8 and 8/ (17 + 67) = 0.096 but this is totally wrong and shows why the dataframes need to be split into white and black dataframes before win dummies can be assigned! 
 
 
 # Get top five best and worst openings for each color. 
 
 # Use 2022, 3 minutes as an example
-df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
+df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False)
 
 # Examine the multi-index 
-df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index
+df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index
 
 # Select the top 5 of the multi-index
-df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[:5]
+df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[:5]
 
 # Select only the ECO portion of the multi-index for the top five. 
-df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[:5].get_level_values(2)
+df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[:5].get_level_values(2)
 
-df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]
+df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]
 
 
-df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[-5:]
+df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[-5:]
 
 
 # Compare to the previous results. 
 # For RichardShtiveland's worst white openings for 2022, 3 minutes: 
-df_white[df_white['year']=="2022"].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=True)
-
+df_white[df_white['year']==2022].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=[True, True, True, False])
 # B50 (-6 and 14 games)
 # B76 (-5 and 11 games)
-# E61 (-3 and 4 games)
-# C40 (-3 and 5 games)
-# C45 (-3 and 5 games)
+# B90 (-3 and 43 games)
+# C44 (-3 and 7 games)
+# A53 (-3 and 6 games) 
 
 
 # Get the count of the selected obs for the five worst white openings. 
-df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['count']
+df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=[True, True, True, False]).iloc[:5]['count']
 
 # Get the mean for the selected obs for the five worst white openings. 
-df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['mean']
+df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=[True, True, True, False]).iloc[:5]['mean']
 
+
+# Examine accuracy x win rate or sorting based on # games and then accuracy. I may have explored these before, but I want to compare these to the cumulative win/loss variable I created. Is accuracy x win rate just equal to number of won games? I think it is. Ex: accuracy 0.50 with the largest number of games across openings. This would mean white wins is the highest so sorting on that would make it look like it's the best opening, but you to keep in mind all the losses, as well. That's why I think I like my cumulative wins over losses better... Compare the mean of white_wins, to white_wins_mean and compare these openings, sorted on year, count, mean, to cumulative wins over losses. 
+
+df_white.head()
+
+
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes')].groupby(["year", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'mean', "count"], ascending=False)
+
+# Per manual inspection, for 2022, 3 minutes, RichardShtivelband's highest win over # loss spread was for: 
+# B06 (11 and 43 games), -- on white_wins_mean list
+# B01 (11 and 38 games), -- on white_wins_mean list 
+# B00 (11 and 28 games),
+# B07 (10 and 35 games) -- on white_wins_mean list 
+# C10 (10 and 17 games)
+
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes')].groupby(["year", 'eco'])["white_wins_mean"].describe().sort_values(by=['year', 'count', 'mean'], ascending=False)
+
+# B12 (0.51 and 49 games)
+# B06 (0.60 and 43 games) -- on white_cumul_sum list 
+# B90 (0.44 and 43 games)
+# B01 (0.63 and 38 games) -- on white_cumul_sum list
+# B07 (0.63 and 35 games) -- on white_cumul_sum list
+
+# See if above is same results as the mean of white_wins
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes')].groupby(["year", 'eco'])["white_wins"].describe().sort_values(by=['year', 'count', 'mean'], ascending=False)
+
+# Results appear consistent. No exceptions noted. p/f/r. Next look into B12 and B90 
+
+eco_lister= ['B06', 'B01', 'B07', 'B00', 'C10', 'B12', 'B90']
+
+for i in eco_lister:
+    print(df_white[['eco', 'white_wins_mean', 'white_cumul_sum']][(df_white['eco'] == i) & (df_white['year']==2022) & (df_white['time_control']== '3 minutes')].iloc[0])
+
+
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']== 'B06')].to_excel('b06_rec.xlsx')
+
+'''TODO: Need to add ascending=[True, True, True, False] for the negative sorts and then change to iloc[:5] below !!!! '''
 
 ###############
 # Best white openings  
@@ -992,9 +1048,16 @@ worst_black_df= pd.DataFrame(data= {'eco': eco, 'no. games': no_games, 'wins ove
 worst_black_df
 del eco, no_games, cumul_win_loss
 
+best_white_df
+worst_white_df
+best_black_df
+worst_black_df
 
+df.head()
 
+df[(df['year']=='2022') & (df['time_control']== '15 minutes + 10')]['eco'].value_counts()
 
+df[(df['year']=='2022') & (df['time_control']== '15 minutes + 10') & (df['eco']== 'C45')]
 
 #######################
 
