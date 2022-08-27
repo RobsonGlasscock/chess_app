@@ -927,6 +927,18 @@ df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes')].gr
 # B01 (0.63 and 38 games) -- on white_cumul_sum list
 # B07 (0.63 and 35 games) -- on white_cumul_sum list
 
+# Examine B12 and B90 white_cumul_sum just for comparative purposes. 
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']== 'B12')]['white_cumul_sum'].describe()
+
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']== 'B90')]['white_cumul_sum'].describe()
+
+# B90 has a low win rate but still pops up because I sorted first on number of games! Below, change the order of the sort to accuracy then games. But this will probably make openings with one game and a 100% win rate appear first. It doesn't make sense to tell someone that one of their best openings has a 0.44 win rate! 
+
+df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes')].groupby(["year", 'eco'])["white_wins_mean"].describe().sort_values(by=['year', 'mean', 'count'], ascending=False)
+
+# Per above, there's no good way to pull out the openings that really matter. 
+# Conclusion- the cumulative wins over losses is the way to go!
+
 # See if above is same results as the mean of white_wins
 df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes')].groupby(["year", 'eco'])["white_wins"].describe().sort_values(by=['year', 'count', 'mean'], ascending=False)
 
@@ -940,8 +952,6 @@ for i in eco_lister:
 
 df_white[(df_white['year']==2022) & (df_white['time_control']== '3 minutes') & (df_white['eco']== 'B06')].to_excel('b06_rec.xlsx')
 
-'''TODO: Need to add ascending=[True, True, True, False] for the negative sorts and then change to iloc[:5] below !!!! '''
-
 ###############
 # Best white openings  
 #########
@@ -952,15 +962,15 @@ no_games= []
 cumul_win_loss= []
 
 # Append the eco's for the five best white openings to the eco list. 
-for i in df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[:5].get_level_values(2):
+for i in df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[:5].get_level_values(2):
     eco.append(i)
 
 # Append the number of games for the five best white openings to the no_games list. 
-for i in df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[:5]['count']:
+for i in df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[:5]['count']:
     no_games.append(i)
 
 # Append the cumulative wins over losses for the five best white openings to the cumul_win_loss list. 
-for i in df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[:5]['mean']:
+for i in df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[:5]['mean']:
     cumul_win_loss.append(i)
 
 best_white_df= pd.DataFrame(data= {'eco': eco, 'no. games': no_games, 'wins over losses': cumul_win_loss})
@@ -977,15 +987,15 @@ no_games= []
 cumul_win_loss= []
 
 # Append the eco's for the five worst white openings to the eco list. 
-for i in df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[-5:].get_level_values(2):
+for i in df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[-5:].get_level_values(2):
     eco.append(i)
 
 # Append the number of games for the five worst white openings to the no_games list. 
-for i in df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['count']:
+for i in df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['count']:
     no_games.append(i)
 
 # Append the cumulative wins over losses for the five worst white openings to the cumul_win_loss list. 
-for i in df_white[(df_white['year']=="2022") & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['mean']:
+for i in df_white[(df_white['year']==2022) & (df_white["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["white_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['mean']:
     cumul_win_loss.append(i)
 
 worst_white_df= pd.DataFrame(data= {'eco': eco, 'no. games': no_games, 'wins over losses': cumul_win_loss})
@@ -1004,15 +1014,15 @@ no_games= []
 cumul_win_loss= []
 
 # Append the eco's for the five best black openings to the eco list. 
-for i in df_black[(df_black['year']=="2022") & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[:5].get_level_values(2):
+for i in df_black[(df_black['year']==2022) & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[:5].get_level_values(2):
     eco.append(i)
 
 # Append the number of games for the five best black openings to the no_games list. 
-for i in df_black[(df_black['year']=="2022") & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[:5]['count']:
+for i in df_black[(df_black['year']==2022) & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[:5]['count']:
     no_games.append(i)
 
 # Append the cumulative wins over losses for the five best black openings to the cumul_win_loss list. 
-for i in df_black[(df_black['year']=="2022") & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[:5]['mean']:
+for i in df_black[(df_black['year']==2022) & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[:5]['mean']:
     cumul_win_loss.append(i)
 
 best_black_df= pd.DataFrame(data= {'eco': eco, 'no. games': no_games, 'wins over losses': cumul_win_loss})
@@ -1031,15 +1041,15 @@ no_games= []
 cumul_win_loss= []
 
 # Append the eco's for the five worst black openings to the eco list. 
-for i in df_black[(df_black['year']=="2022") & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[-5:].get_level_values(2):
+for i in df_black[(df_black['year']==2022) & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).index[-5:].get_level_values(2):
     eco.append(i)
 
 # Append the number of games for the five worst black openings to the no_games list. 
-for i in df_black[(df_black['year']=="2022") & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['count']:
+for i in df_black[(df_black['year']==2022) & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['count']:
     no_games.append(i)
 
 # Append the cumulative wins over losses for the five worst black openings to the cumul_win_loss list. 
-for i in df_black[(df_black['year']=="2022") & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['mean']:
+for i in df_black[(df_black['year']==2022) & (df_black["time_control"]=="3 minutes")].groupby(["year", "time_control", 'eco'])["black_cumul_sum"].describe().sort_values(by=['year', 'time_control', 'mean', "count"], ascending=False).iloc[-5:]['mean']:
     cumul_win_loss.append(i)
 
 worst_black_df= pd.DataFrame(data= {'eco': eco, 'no. games': no_games, 'wins over losses': cumul_win_loss})
@@ -1052,12 +1062,6 @@ best_white_df
 worst_white_df
 best_black_df
 worst_black_df
-
-df.head()
-
-df[(df['year']=='2022') & (df['time_control']== '15 minutes + 10')]['eco'].value_counts()
-
-df[(df['year']=='2022') & (df['time_control']== '15 minutes + 10') & (df['eco']== 'C45')]
 
 #######################
 
