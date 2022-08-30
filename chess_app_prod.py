@@ -686,6 +686,9 @@ print(worst)
 # Box and whisker plots 
 #################################
 
+# Create a variable for the graph titles. 
+title_str = pn + " " + time_control
+
 # Initialize an empty list and put the year indices for the time control into the list. 
 year_idx=[]
 for i in df[df['time_control']==time_control]['rating'].groupby(df['year']).describe().index:
@@ -699,10 +702,13 @@ for i, j in enumerate(df[df['time_control']==time_control]['rating'].groupby(df[
     name = 'col' + '_' + str(j)
     x_labels.append(str(j))
     x_ints.append(i+1)
-    print(name)
     key= name
     values= df[(df['time_control']== time_control) & (df['year']==j)]['rating']
     dicter[key] = values
+
+# Create auto-labels for the datapoints on the scatterplot graph. Earlier, I automated finding out the number of years for the x axis. Since that is known, the mean of the rating within each time control will have the same length and order. Below grabs these values. 
+
+y_labels= df[df['time_control']==time_control]['rating'].groupby(df['year']).describe()['mean'].values.astype(int)
 
 # Create a list of np arrays for the values of the series of the ratings for each year. 
 cols= []
@@ -716,23 +722,16 @@ fig, ax= plt.subplots()
 ax.boxplot(cols)
 plt.xticks(x_ints, x_labels)
 plt.title(title_str)
+for i in range(len(x_labels)):
+    # Note that below has to use the x_ints associated with the x_labels but not the x_labels list. 
+    plt.text(x_ints[i] + 0.33, y_labels[i] , str(y_labels[i]),  horizontalalignment='center' )
 plt.show()
-
-# Below has all of the years. These are the x coordinates. 
-x_labels
-
 
 ###########################
 # Scatter Plots 
 ###########################
 
 # Graph of average rating for the time control over all the years the player has played that time control. 
-
-# Create auto-labels for the datapoints on the scatterplot graph. Earlier, I automated finding out the number of years for the x axis. Since that is known, the mean of the rating within each time control will have the same length and order. Below grabs these values. 
-
-y_labels= df[df['time_control']==time_control]['rating'].groupby(df['year']).describe()['mean'].values.astype(int)
-
-title_str = pn + " " + time_control
 
 plt.scatter(
     df_export["mean"][
@@ -750,24 +749,8 @@ for i in range(len(x_labels)):
     plt.text(x_labels[i], y_labels[i] + 12.0 , str(y_labels[i]),  horizontalalignment='center' )
 plt.show()
 
-################3
-
-# Create the graph which plots each of the arrays as a separate box plot. 
-fig, ax= plt.subplots()
-ax.boxplot(cols)
-plt.xticks(x_ints, x_labels)
-plt.title(title_str)
-for i in range(len(x_labels)):
-    # Note that below has to use the x_ints associated with the x_labels but not the x_labels list. 
-    plt.text(x_ints[i] + 0.33, y_labels[i] , str(y_labels[i]),  horizontalalignment='center' )
-plt.show()
-
-
-
-
-#####################3
 end = time.time()
 total_time = end - start
 
 total_time
-print("execution time", str(total_time))
+print("Execution Time", str(total_time))
