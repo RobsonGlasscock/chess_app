@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import requests
-import streamlit as st 
+import streamlit as st
 import time
 
 start = time.time()
@@ -12,12 +12,16 @@ pd.set_option("display.max_rows", None)
 
 
 # Define the player's name.
-pn = st.text_input('Enter your username below:', value="")
+pn = st.text_input("Enter your username below:", value="")
 
 # Define the time control
-time_control = st.text_input("Enter the time control you want to see analytics for below:", value="")
+time_control = st.text_input(
+    "Enter the time control you want to see analytics for below:", value=""
+)
 # Define the year
-year = st.text_input("Enter the year you want to see analytics for below:", value="")
+year = st.text_input(
+    "Enter the year you want to see analytics for below:", value=""
+)
 
 
 if (pn != "") & (time_control != "") & (year != ""):
@@ -64,11 +68,14 @@ if (pn != "") & (time_control != "") & (year != ""):
     # Make a new directory for the player's games.
     os.makedirs("./game_lib", exist_ok=True)
 
-
     for i in year_month_list:
         # iterate through the YYYY/MM game databases on chess.com
         game_year_month = requests.get(
-            "https://api.chess.com/pub/player/" + player_name + "/games/" + i + "/pgn"
+            "https://api.chess.com/pub/player/"
+            + player_name
+            + "/games/"
+            + i
+            + "/pgn"
         )
 
         # below replaces the backslash, which will be interpreted as part of the pather otherwise, with an underscore.
@@ -166,12 +173,17 @@ if (pn != "") & (time_control != "") & (year != ""):
 
     df.drop(columns=["dropper"], inplace=True)
 
-    st.write("__Time control definitions are available here__: http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c9.6")
-    
+    st.write(
+        "__Time control definitions are available here__: http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c9.6"
+    )
+
     st.write("__Here are some useful conversions:__")
-    st.write("""The third Time control field kind is formed as two positive integers separated by a solidus ("/") character. The first integer is the number of moves in the period and the second is the number of seconds in the period. Thus, a time control period of 40 moves in 2 1/2 hours would be represented as "40/9000".""")
-    st.write("""The fifth TimeControl field kind is used for an "incremental" control period. It should only be used for the last descriptor in a TimeControl tag value and is usually the only descriptor in the value. The format consists of two positive integers separated by a plus sign ("+") character. The first integer gives the minimum number of seconds allocated for the period and the second integer gives the number of extra seconds added after each move is made. So, an incremental time control of 90 minutes plus one extra minute per move would be given by "4500+60" in the TimeControl tag value.""")
-    
+    st.write(
+        """The third Time control field kind is formed as two positive integers separated by a solidus ("/") character. The first integer is the number of moves in the period and the second is the number of seconds in the period. Thus, a time control period of 40 moves in 2 1/2 hours would be represented as "40/9000"."""
+    )
+    st.write(
+        """The fifth TimeControl field kind is used for an "incremental" control period. It should only be used for the last descriptor in a TimeControl tag value and is usually the only descriptor in the value. The format consists of two positive integers separated by a plus sign ("+") character. The first integer gives the minimum number of seconds allocated for the period and the second integer gives the number of extra seconds added after each move is made. So, an incremental time control of 90 minutes plus one extra minute per move would be given by "4500+60" in the TimeControl tag value."""
+    )
 
     # Create functions for the following variables: white wins, white losses, black wins,
     # black losses, white draws, black draws.
@@ -181,13 +193,11 @@ if (pn != "") & (time_control != "") & (year != ""):
         else:
             return 0
 
-
     def black_wins(df):
         if ("Black" in df["player"]) and ("0-1" in df["result"]):
             return 1
         else:
             return 0
-
 
     def white_losses(df):
         if ("White" in df["player"]) and ("0-1" in df["result"]):
@@ -195,13 +205,11 @@ if (pn != "") & (time_control != "") & (year != ""):
         else:
             return 0
 
-
     def black_losses(df):
         if ("Black" in df["player"]) and ("1-0" in df["result"]):
             return 1
         else:
             return 0
-
 
     def white_draws(df):
         if ("White" in df["player"]) and ("1/2-1/2" in df["result"]):
@@ -209,16 +217,13 @@ if (pn != "") & (time_control != "") & (year != ""):
         else:
             return 0
 
-
     def black_draws(df):
         if ("Black" in df["player"]) and ("1/2-1/2" in df["result"]):
             return 1
         else:
             return 0
 
-
     # Create cumulative counts where wins =+1 and losses =-1
-
 
     def white_cumul(df):
         if ("White" in df["player"]) and ("1-0" in df["result"]):
@@ -228,7 +233,6 @@ if (pn != "") & (time_control != "") & (year != ""):
         else:
             return 0
 
-
     def black_cumul(df):
         if ("Black" in df["player"]) and ("0-1" in df["result"]):
             return 1
@@ -236,7 +240,6 @@ if (pn != "") & (time_control != "") & (year != ""):
             return -1
         else:
             return 0
-
 
     # Create vars for combined df.
     df["white_wins"] = df.apply(white_wins, axis=1)
@@ -258,7 +261,6 @@ if (pn != "") & (time_control != "") & (year != ""):
     # Retain the numeric portion of the rating.
     df["rating"] = df["rating"].apply(lambda x: x[-6:-2])
 
-
     # Ratings under < 1,000 have a leading "
     # Define a function to remove the leading "
     def stripper(x):
@@ -267,14 +269,15 @@ if (pn != "") & (time_control != "") & (year != ""):
         else:
             return x
 
-
     # Apply the function to the dataframe to deal with the sub 1,000 ratings.
     df["rating"] = df["rating"].apply(stripper)
     df["rating"] = df["rating"].astype(int)
 
     # Remove the unnecessary components of the string.
 
-    df["time_control"] = df["time_control"].apply(lambda x: x.replace("TimeControl", ""))
+    df["time_control"] = df["time_control"].apply(
+        lambda x: x.replace("TimeControl", "")
+    )
     df["time_control"] = df["time_control"].apply(lambda x: x.replace('"', ""))
     df["time_control"] = df["time_control"].apply(lambda x: x.replace("[", ""))
     df["time_control"] = df["time_control"].apply(lambda x: x.replace("]", ""))
@@ -300,13 +303,14 @@ if (pn != "") & (time_control != "") & (year != ""):
     df["year"] = df["date"].apply(lambda x: x[:4])
 
     # Create an annual count variable for each year-time_control.
-    df["ann_count"] = df.groupby(["year", "time_control"])["rating"].transform(len)
+    df["ann_count"] = df.groupby(["year", "time_control"])["rating"].transform(
+        len
+    )
 
     # sort the dataframe
     df.sort_values(by=["year", "time_control"], inplace=True)
 
     df.reset_index(drop=True, inplace=True)
-
 
     def time_convert(col):
         if col.strip() == "180":
@@ -351,7 +355,6 @@ if (pn != "") & (time_control != "") & (year != ""):
         else:
             return col
 
-
     df["time_control"] = df["time_control"].apply(time_convert)
 
     # Create cumulative sums for white and black by eco. This uses the +1 for wins and -1 for losses.
@@ -372,7 +375,6 @@ if (pn != "") & (time_control != "") & (year != ""):
     # increments white wins +1 and decrements for white losses. This would show the
     # "spread" of wins over losses or losses over wins.
 
-
     # Judgement call to remove any time control with less than 12 games per year. Do this for df, white_df, and black_df.
     df.drop(df[df["ann_count"] < 12].index, inplace=True)
     df_white = df[df["color"] == "white"].copy(deep=True)
@@ -382,16 +384,20 @@ if (pn != "") & (time_control != "") & (year != ""):
     # Show players their games for each year and time control
     ##################
 
-    df_val_cts = df.groupby("year")["time_control"].value_counts().reset_index(level=0)
+    df_val_cts = (
+        df.groupby("year")["time_control"].value_counts().reset_index(level=0)
+    )
     df_val_cts.info()
-    df_val_cts.rename(columns={"time_control": "Number of Games"}, inplace=True)
+    df_val_cts.rename(
+        columns={"time_control": "Number of Games"}, inplace=True
+    )
     df_val_cts.reset_index(level=0, inplace=True)
     df_val_cts.rename(
         columns={"time_control": "Time Control", "year": "Year"}, inplace=True
     )
     val_ct_cols = ["Year", "Time Control", "Number of Games"]
 
-    # CSS to ineject contained in a string 
+    # CSS to ineject contained in a string
     # https://docs.streamlit.io/knowledge-base/using-streamlit/hide-row-indices-displaying-dataframe
     hide_table_row_index = """ 
         <style>
@@ -403,6 +409,17 @@ if (pn != "") & (time_control != "") & (year != ""):
     st.table(df_val_cts[val_ct_cols])
     st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
+    #####################
+    # Create accuracy for each year, time, and eco combination.
+    ##########################
+    df_white["win_rate"] = df_white.groupby(["year", "time_control", "eco"])[
+        "white_wins"
+    ].transform("mean")
+
+    df_black["win_rate"] = df_black.groupby(["year", "time_control", "eco"])[
+        "black_wins"
+    ].transform("mean")
+
     ###############
     # Best white openings
     #########
@@ -411,13 +428,19 @@ if (pn != "") & (time_control != "") & (year != ""):
     eco = []
     no_games = []
     cumul_win_loss = []
+    win_rate = []
 
     # Append the eco's for the five best white openings to the eco list.
     for i in (
-        df_white[(df_white["year"] == year) & (df_white["time_control"] == time_control)]
+        df_white[
+            (df_white["year"] == year)
+            & (df_white["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .index[:5]
         .get_level_values(2)
     ):
@@ -425,23 +448,58 @@ if (pn != "") & (time_control != "") & (year != ""):
 
     # Append the number of games for the five best white openings to the no_games list.
     for i in (
-        df_white[(df_white["year"] == year) & (df_white["time_control"] == time_control)]
+        df_white[
+            (df_white["year"] == year)
+            & (df_white["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .iloc[:5]["count"]
     ):
         no_games.append(int(i))
 
     # Append the cumulative wins over losses for the five best white openings to the cumul_win_loss list.
     for i in (
-        df_white[(df_white["year"] == year) & (df_white["time_control"] == time_control)]
+        df_white[
+            (df_white["year"] == year)
+            & (df_white["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .iloc[:5]["mean"]
     ):
         cumul_win_loss.append(int(i))
+
+    # Append the win_rate for the five best white openings to the win_rate list.
+
+    for i in (
+        df_white[
+            (df_white["year"] == year)
+            & (df_white["time_control"] == time_control)
+        ]
+        .groupby(["year", "time_control", "eco"])[
+            "white_cumul_sum", "win_rate"
+        ]
+        .describe()
+        .sort_values(
+            by=[
+                "year",
+                "time_control",
+                ("white_cumul_sum", "mean"),
+                ("white_cumul_sum", "count"),
+            ],
+            ascending=False,
+        )[("win_rate", "mean")]
+        .iloc[:5]
+        .values
+    ):
+        win_rate.append(i)
 
     best_white_df = pd.DataFrame(
         data={
@@ -449,6 +507,7 @@ if (pn != "") & (time_control != "") & (year != ""):
             "Color": "White",
             "Number of Games": no_games,
             "Wins Over Losses": cumul_win_loss,
+            "Win Percentage": win_rate,
         }
     )
 
@@ -462,13 +521,19 @@ if (pn != "") & (time_control != "") & (year != ""):
     eco = []
     no_games = []
     cumul_win_loss = []
+    win_rate = []
 
     # Append the eco's for the five worst white openings to the eco list.
     for i in (
-        df_white[(df_white["year"] == year) & (df_white["time_control"] == time_control)]
+        df_white[
+            (df_white["year"] == year)
+            & (df_white["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .index[-5:]
         .get_level_values(2)
     ):
@@ -476,23 +541,58 @@ if (pn != "") & (time_control != "") & (year != ""):
 
     # Append the number of games for the five worst white openings to the no_games list.
     for i in (
-        df_white[(df_white["year"] == year) & (df_white["time_control"] == time_control)]
+        df_white[
+            (df_white["year"] == year)
+            & (df_white["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .iloc[-5:]["count"]
     ):
         no_games.append(int(i))
 
     # Append the cumulative wins over losses for the five worst white openings to the cumul_win_loss list.
     for i in (
-        df_white[(df_white["year"] == year) & (df_white["time_control"] == time_control)]
+        df_white[
+            (df_white["year"] == year)
+            & (df_white["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .iloc[-5:]["mean"]
     ):
         cumul_win_loss.append(int(i))
+
+    # Append the win_rate for the five worst white openings to the win_rate list.
+
+    for i in (
+        df_white[
+            (df_white["year"] == year)
+            & (df_white["time_control"] == time_control)
+        ]
+        .groupby(["year", "time_control", "eco"])[
+            "white_cumul_sum", "win_rate"
+        ]
+        .describe()
+        .sort_values(
+            by=[
+                "year",
+                "time_control",
+                ("white_cumul_sum", "mean"),
+                ("white_cumul_sum", "count"),
+            ],
+            ascending=False,
+        )[("win_rate", "mean")]
+        .iloc[-5:]
+        .values
+    ):
+        win_rate.append(i)
 
     worst_white_df = pd.DataFrame(
         data={
@@ -500,10 +600,13 @@ if (pn != "") & (time_control != "") & (year != ""):
             "Color": "White",
             "Number of Games": no_games,
             "Losses Over Wins": cumul_win_loss,
+            "Win Percentage": win_rate,
         }
     )
 
-    worst_white_df.sort_values(by="Losses Over Wins", ascending=True, inplace=True)
+    worst_white_df.sort_values(
+        by="Losses Over Wins", ascending=True, inplace=True
+    )
 
     del eco, no_games, cumul_win_loss
 
@@ -515,13 +618,19 @@ if (pn != "") & (time_control != "") & (year != ""):
     eco = []
     no_games = []
     cumul_win_loss = []
+    win_rate = []
 
     # Append the eco's for the five best black openings to the eco list.
     for i in (
-        df_black[(df_black["year"] == year) & (df_black["time_control"] == time_control)]
+        df_black[
+            (df_black["year"] == year)
+            & (df_black["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .index[:5]
         .get_level_values(2)
     ):
@@ -529,23 +638,58 @@ if (pn != "") & (time_control != "") & (year != ""):
 
     # Append the number of games for the five best black openings to the no_games list.
     for i in (
-        df_black[(df_black["year"] == year) & (df_black["time_control"] == time_control)]
+        df_black[
+            (df_black["year"] == year)
+            & (df_black["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .iloc[:5]["count"]
     ):
         no_games.append(int(i))
 
     # Append the cumulative wins over losses for the five best black openings to the cumul_win_loss list.
     for i in (
-        df_black[(df_black["year"] == year) & (df_black["time_control"] == time_control)]
+        df_black[
+            (df_black["year"] == year)
+            & (df_black["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .iloc[:5]["mean"]
     ):
         cumul_win_loss.append(int(i))
+
+    # Append the win_rate for the five best black openings to the win_rate list.
+
+    for i in (
+        df_black[
+            (df_black["year"] == year)
+            & (df_black["time_control"] == time_control)
+        ]
+        .groupby(["year", "time_control", "eco"])[
+            "black_cumul_sum", "win_rate"
+        ]
+        .describe()
+        .sort_values(
+            by=[
+                "year",
+                "time_control",
+                ("black_cumul_sum", "mean"),
+                ("black_cumul_sum", "count"),
+            ],
+            ascending=False,
+        )[("win_rate", "mean")]
+        .iloc[:5]
+        .values
+    ):
+        win_rate.append(i)
 
     best_black_df = pd.DataFrame(
         data={
@@ -553,6 +697,7 @@ if (pn != "") & (time_control != "") & (year != ""):
             "Color": "Black",
             "Number of Games": no_games,
             "Wins Over Losses": cumul_win_loss,
+            "Win Percentage": win_rate 
         }
     )
 
@@ -565,13 +710,19 @@ if (pn != "") & (time_control != "") & (year != ""):
     eco = []
     no_games = []
     cumul_win_loss = []
+    win_rate = []
 
     # Append the eco's for the five worst black openings to the eco list.
     for i in (
-        df_black[(df_black["year"] == year) & (df_black["time_control"] == time_control)]
+        df_black[
+            (df_black["year"] == year)
+            & (df_black["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .index[-5:]
         .get_level_values(2)
     ):
@@ -579,23 +730,58 @@ if (pn != "") & (time_control != "") & (year != ""):
 
     # Append the number of games for the five worst black openings to the no_games list.
     for i in (
-        df_black[(df_black["year"] == year) & (df_black["time_control"] == time_control)]
+        df_black[
+            (df_black["year"] == year)
+            & (df_black["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .iloc[-5:]["count"]
     ):
         no_games.append(int(i))
 
     # Append the cumulative wins over losses for the five worst black openings to the cumul_win_loss list.
     for i in (
-        df_black[(df_black["year"] == year) & (df_black["time_control"] == time_control)]
+        df_black[
+            (df_black["year"] == year)
+            & (df_black["time_control"] == time_control)
+        ]
         .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
         .describe()
-        .sort_values(by=["year", "time_control", "mean", "count"], ascending=False)
+        .sort_values(
+            by=["year", "time_control", "mean", "count"], ascending=False
+        )
         .iloc[-5:]["mean"]
     ):
         cumul_win_loss.append(int(i))
+
+    # Append the win_rate for the five worst black openings to the win_rate list.
+
+    for i in (
+        df_black[
+            (df_black["year"] == year)
+            & (df_black["time_control"] == time_control)
+        ]
+        .groupby(["year", "time_control", "eco"])[
+            "black_cumul_sum", "win_rate"
+        ]
+        .describe()
+        .sort_values(
+            by=[
+                "year",
+                "time_control",
+                ("black_cumul_sum", "mean"),
+                ("black_cumul_sum", "count"),
+            ],
+            ascending=False,
+        )[("win_rate", "mean")]
+        .iloc[-5:]
+        .values
+    ):
+        win_rate.append(i)
 
     worst_black_df = pd.DataFrame(
         data={
@@ -603,16 +789,45 @@ if (pn != "") & (time_control != "") & (year != ""):
             "Color": "Black",
             "Number of Games": no_games,
             "Losses Over Wins": cumul_win_loss,
+            "Win Percentage": win_rate,
         }
     )
 
-
-    worst_black_df.sort_values(by="Losses Over Wins", ascending=True, inplace=True)
+    worst_black_df.sort_values(
+        by="Losses Over Wins", ascending=True, inplace=True
+    )
 
     del eco, no_games, cumul_win_loss
 
-    df_export = df.groupby(["year", "time_control"])["rating"].describe().round()
+    df_export = (
+        df.groupby(["year", "time_control"])["rating"].describe().round()
+    )
     df_export = df_export.astype(int)
+
+    #################################
+    # Link openings to opening descriptions
+    ###################################
+    df_openings = (
+        df.groupby(["eco"])["eco_desc"].describe().reset_index(drop=False)
+    )
+
+    df_openings = df_openings[["eco", "top"]].copy(deep=True)
+
+    df_openings.rename(
+        columns={"eco": "ECO", "top": "ECO Description"}, inplace=True
+    )
+
+    #######################
+    # Merge in the eco_descriptions to the best and worst dataframes
+    ###################
+
+    best_white_df = best_white_df.merge(df_openings, on="ECO", how="left")
+
+    worst_white_df = worst_white_df.merge(df_openings, on="ECO", how="left")
+
+    best_black_df = best_black_df.merge(df_openings, on="ECO", how="left")
+
+    worst_black_df = worst_black_df.merge(df_openings, on="ECO", how="left")
 
     ##############################
     # Best and Worst Openings
@@ -627,7 +842,6 @@ if (pn != "") & (time_control != "") & (year != ""):
     st.write("__Your worst openings are:__")
     st.markdown(hide_table_row_index, unsafe_allow_html=True)
     st.table(worst)
-
 
     #############################
     # Box and whisker plots
@@ -660,7 +874,9 @@ if (pn != "") & (time_control != "") & (year != ""):
         x_labels.append(str(j))
         x_ints.append(i + 1)
         key = name
-        values = df[(df["time_control"] == time_control) & (df["year"] == j)]["rating"]
+        values = df[(df["time_control"] == time_control) & (df["year"] == j)][
+            "rating"
+        ]
         dicter[key] = values
 
     # Create auto-labels for the datapoints on the scatterplot graph. Earlier, I automated finding out the number of years for the x axis. Since that is known, the mean of the rating within each time control will have the same length and order. Below grabs these values.
@@ -687,7 +903,10 @@ if (pn != "") & (time_control != "") & (year != ""):
     for i in range(len(x_labels)):
         # Note that below has to use the x_ints associated with the x_labels but not the x_labels list.
         plt.text(
-            x_ints[i] + 0.33, y_labels[i], str(y_labels[i]), horizontalalignment="center",
+            x_ints[i] + 0.33,
+            y_labels[i],
+            str(y_labels[i]),
+            horizontalalignment="center",
         )
     plt.show()
 
@@ -697,12 +916,14 @@ if (pn != "") & (time_control != "") & (year != ""):
 
     # Graph of average rating for the time control over all the years the player has played that time control.
 
-    fig_1, ax= plt.subplots()
+    fig_1, ax = plt.subplots()
     ax.scatter(
         df_export["mean"][
             df_export.index.get_level_values(1) == time_control
         ].index.get_level_values(0),
-        df_export["mean"][df_export.index.get_level_values(1) == time_control].values,
+        df_export["mean"][
+            df_export.index.get_level_values(1) == time_control
+        ].values,
     )
     plt.xlabel("Year")
     plt.ylabel("Rating")
@@ -712,16 +933,17 @@ if (pn != "") & (time_control != "") & (year != ""):
     # Below uses a loop since the number of years the player has played is not known before hand. Again, the x_labels have the same legnth as the y_labels and will be in the same order from year_1 to year_1+whatever. Below is equivalent to multiple plt.text() statements and the loop is constructed to essentially "write" as many of these statements as necessary.
     for i in range(len(x_labels)):
         plt.text(
-            x_labels[i], y_labels[i] + 12.0, str(y_labels[i]), horizontalalignment="center",
+            x_labels[i],
+            y_labels[i] + 12.0,
+            str(y_labels[i]),
+            horizontalalignment="center",
         )
     plt.show()
-
 
     st.write("__Below are plots of your average rating for each year__:")
 
     st.pyplot(fig_1)
     st.pyplot(fig_2)
-
 
     end = time.time()
     total_time = end - start
@@ -729,5 +951,3 @@ if (pn != "") & (time_control != "") & (year != ""):
     total_time
     print("Execution Time", str(total_time))
 
-
-    
