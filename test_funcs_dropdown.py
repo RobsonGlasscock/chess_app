@@ -38,6 +38,10 @@ if pn !="":
             else:
                 archives = archives.replace(j, "")
 
+        # Make a directory for the player name and change into it. 
+        os.makedirs('/home/robson/streamlit_apps/chess_app/' + pn, exist_ok=True)
+        os.chdir('/home/robson/streamlit_apps/chess_app/' + pn)
+
         # write out to a file.
         with open("archives.txt", "w") as f:
             f.write(archives)
@@ -362,60 +366,60 @@ if pn !="":
         df_white = df[df["color"] == "white"].copy(deep=True)
         df_black = df[df["color"] == "black"].copy(deep=True)
 
-        df.to_csv('/home/robson/streamlit_apps/chess_app/df.csv')
-        df_white.to_csv('/home/robson/streamlit_apps/chess_app/df_white.csv')
-        df_black.to_csv('/home/robson/streamlit_apps/chess_app/df_black.csv')
+        df.to_csv('/home/robson/streamlit_apps/chess_app/' + pn + '/df.csv')
+        df_white.to_csv('/home/robson/streamlit_apps/chess_app/' + pn + '/df_white.csv')
+        df_black.to_csv('/home/robson/streamlit_apps/chess_app/' + pn + '/df_black.csv')
+        
+    data_pull()     
 
-        #####################
-    # Show players their games for each year and time control
+       #####################
+    # Show players their games for each year and time control - this is needed here rather than inside data_pull() because data_pull() is set to only run once. So, if a player changes an input then the table goes away if it is inside data_pull().
     ###################
-
-        df_val_cts = (
+    df= pd.read_csv('/home/robson/streamlit_apps/chess_app/' + pn + '/df.csv')
+    df_val_cts = (
         df.groupby("year")["time_control"].value_counts().reset_index(level=0)
     )
-        df_val_cts.info()
-        df_val_cts.rename(
-            columns={"time_control": "Number of Games"}, inplace=True
-        )
-        df_val_cts.reset_index(level=0, inplace=True)
-        df_val_cts.rename(
-            columns={"time_control": "Time Control", "year": "Year"}, inplace=True
-        )
-        val_ct_cols = ["Year", "Time Control", "Number of Games"]
+    df_val_cts.info()
+    df_val_cts.rename(
+        columns={"time_control": "Number of Games"}, inplace=True
+    )
+    df_val_cts.reset_index(level=0, inplace=True)
+    df_val_cts.rename(
+        columns={"time_control": "Time Control", "year": "Year"}, inplace=True
+    )
+    val_ct_cols = ["Year", "Time Control", "Number of Games"]
 
-        # CSS to ineject contained in a string
-        # https://docs.streamlit.io/knowledge-base/using-streamlit/hide-row-indices-displaying-dataframe
-        hide_table_row_index = """ 
-            <style>
-            thead tr th:first-child {display:none}
-            tbody th {display:none}
-            </style>
-            """
-        st.write("__Your time control counts for each year are:__")
-        st.table(df_val_cts[val_ct_cols])
-        st.markdown(hide_table_row_index, unsafe_allow_html=True)
-
-        #st.write(df_val_cts['Year'].unique())
-        #st.write(df_val_cts['Time Control'].unique())
-
-        time_control_list= []
-        for i in df_val_cts['Time Control'].unique():
-            time_control_list.append(i)
+    # CSS to ineject contained in a string
+    # https://docs.streamlit.io/knowledge-base/using-streamlit/hide-row-indices-displaying-dataframe
+    hide_table_row_index = """ 
+        <style>
+        thead tr th:first-child {display:none}
+        tbody th {display:none}
+        </style>
+        """
+    st.write("__Your time control counts for each year are:__")
+    st.table(df_val_cts[val_ct_cols])
+    st.markdown(hide_table_row_index, unsafe_allow_html=True)
     
-        year_list= []
-        for i in df_val_cts['Year'].unique():
-            year_list.append(int(i))
-        #st.write(time_control_list)
-        #st.write(year_list)
+    #st.write(df_val_cts['Year'].unique())
+    #st.write(df_val_cts['Time Control'].unique())
 
-        time_control_df= pd.DataFrame(data= {'Time Control':time_control_list})
-        time_control_df.to_csv('time_control_list.csv')
-        year_list_df = pd.DataFrame(data= {'Year': year_list})
-        year_list_df.to_csv('year_list.csv')
+    time_control_list= []
+    for i in df_val_cts['Time Control'].unique():
+        time_control_list.append(i)
 
+    year_list= []
+    for i in df_val_cts['Year'].unique():
+        year_list.append(int(i))
+    #st.write(time_control_list)
+    #st.write(year_list)
 
-    data_pull()     
-    
+    time_control_df= pd.DataFrame(data= {'Time Control':time_control_list})
+    time_control_df.to_csv('time_control_list.csv')
+    year_list_df = pd.DataFrame(data= {'Year': year_list})
+    year_list_df.to_csv('year_list.csv')
+
+    ########################
     time_control_df= pd.read_csv('time_control_list.csv')
     
     year_list_df = pd.read_csv('year_list.csv')
@@ -451,13 +455,13 @@ if pn !="":
             print('year is', year)
             print("year type is", type(year))
             print('time_control is', time_control)
-            df_white = pd.read_csv('/home/robson/streamlit_apps/chess_app/df_white.csv')
+            df_white = pd.read_csv('/home/robson/streamlit_apps/chess_app/' + pn + '/df_white.csv')
             print(df_white.head())
             df_white['year']= df_white['year'].astype(str)
             print(df_white.info())
-            df_black= pd.read_csv('/home/robson/streamlit_apps/chess_app/df_black.csv')
+            df_black= pd.read_csv('/home/robson/streamlit_apps/chess_app/' + pn + '/df_black.csv')
             df_black['year']= df_black['year'].astype(str)
-            df= pd.read_csv('/home/robson/streamlit_apps/chess_app/df.csv')
+            df= pd.read_csv('/home/robson/streamlit_apps/chess_app/' + pn + '/df.csv')
             df['year']= df['year'].astype(str)
     #####################
             # Create accuracy for each year, time, and eco combination.
@@ -888,6 +892,16 @@ if pn !="":
             best = pd.concat([best_white_df, best_black_df])
             worst = pd.concat([worst_white_df, worst_black_df])
 
+            # Convert to text percentages for display. 
+            best['Win Percentage']= best['Win Percentage'] * 100
+            best['Win Percentage'] = best['Win Percentage'].astype(int)
+            best['Win Percentage']= best['Win Percentage'].astype(str) + '%'
+            
+            worst['Win Percentage']= worst['Win Percentage'] * 100
+            worst['Win Percentage']= worst['Win Percentage'].astype(int)
+            worst['Win Percentage']= worst['Win Percentage'].astype(str) + '%'
+            
+
             st.write("__Your best openings are:__")
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
             st.table(best)
@@ -1017,5 +1031,4 @@ if pn !="":
             )
 
         analytics()
-
 
