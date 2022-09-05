@@ -307,6 +307,12 @@ if pn !="":
                 return "10 minutes"
             if col.strip() == "900+10":
                 return "15 minutes + 10"
+            if col.strip()== "900+5":
+                return "15 minutes + 5"
+            if col.strip()== '1200+10':
+                return "20 minutes + 10"
+            if col.strip() == "1200":
+                return "20 minutes"    
             if col.strip() == "300":
                 return "5 minutes"
             if col.strip() == "300+5":
