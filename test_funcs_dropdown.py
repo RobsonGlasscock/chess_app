@@ -13,7 +13,6 @@ time_control = ""
 time_control_df = None
 year_list_df = None
 home_dir = os.getcwd()
-pn = ""
 
 # Define the player's name.
 pn = st.text_input("Enter your username below:", value="")
