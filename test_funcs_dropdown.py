@@ -17,7 +17,7 @@ year_list_df = None
 pn = st.text_input("Enter your username below:", value="")
 if pn != "":
 
-    @st.cache(suppress_st_warning=True)
+    @st.cache(suppress_st_warning=True, max_entries=1)
     def data_pull():
 
         # The chess.com player name in the url path is lowercase. Convert to lower here.
