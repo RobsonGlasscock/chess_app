@@ -66,8 +66,10 @@ if pn != "":
         # Create a list of the archive links.
         year_month_list = df_archives["index"].values.tolist()
 
+        dir_string = "./" + pn + "/game_lib/"
+
         # Make a new directory for the player's games.
-        os.makedirs("./game_lib", exist_ok=True)
+        os.makedirs(dir_string, exist_ok=True)
 
         for i in year_month_list:
             # iterate through the YYYY/MM game databases on chess.com
@@ -81,15 +83,14 @@ if pn != "":
 
             # below replaces the backslash, which will be interpreted as part of the pather otherwise, with an underscore.
             games_string = i.replace("/", "_") + ".txt"
-            # define the path to the newly created game folder.
-            pather = "./game_lib"
+
             # create the full path to use below.
-            save_to = os.path.join(pather, games_string)
+            save_to = os.path.join(dir_string, games_string)
             # write out the files to the game_lib path.
             with open(save_to, "w") as f:
                 f.write(game_year_month.text)
 
-        os.chdir("./game_lib")
+        os.chdir(dir_string)
 
         for i, j in enumerate(os.listdir()):
             if i == 0:
