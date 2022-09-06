@@ -12,12 +12,15 @@ year = ""
 time_control = ""
 time_control_df = None
 year_list_df = None
+home_dir = os.getcwd()
 
 # Define the player's name.
 pn = st.text_input("Enter your username below:", value="")
 if pn != "":
 
-    @st.cache(suppress_st_warning=True, max_entries=1)
+    os.system("streamlit cache clear")
+
+    @st.cache(suppress_st_warning=True)
     def data_pull():
 
         # The chess.com player name in the url path is lowercase. Convert to lower here.
@@ -66,7 +69,7 @@ if pn != "":
         # Create a list of the archive links.
         year_month_list = df_archives["index"].values.tolist()
 
-        dir_string = "./" + pn + "/game_lib/"
+        dir_string = home_dir + "/" + pn + "/game_lib/"
 
         # Make a new directory for the player's games.
         os.makedirs(dir_string, exist_ok=True)
@@ -385,13 +388,16 @@ if pn != "":
         df.to_csv("df.csv")
         df_white.to_csv("df_white.csv")
         df_black.to_csv("df_black.csv")
+        os.chdir(home_dir)
 
     data_pull()
 
     #####################
     # Show players their games for each year and time control - this is needed here rather than inside data_pull() because data_pull() is set to only run once. So, if a player changes an input then the table goes away if it is inside data_pull().
     ###################
-    df = pd.read_csv("df.csv")
+    dir_string = home_dir + "/" + pn + "/game_lib/"
+    csv_load = dir_string + "df.csv"
+    df = pd.read_csv(csv_load)
     df_val_cts = (
         df.groupby("year")["time_control"].value_counts().reset_index(level=0)
     )
@@ -478,13 +484,16 @@ if pn != "":
             print("year is", year)
             print("year type is", type(year))
             print("time_control is", time_control)
-            df_white = pd.read_csv("df_white.csv")
+            white_load = dir_string + "df_white.csv"
+            df_white = pd.read_csv(white_load)
             print(df_white.head())
             df_white["year"] = df_white["year"].astype(str)
             print(df_white.info())
-            df_black = pd.read_csv("df_black.csv")
+            black_load = dir_string + "df_black.csv"
+            df_black = pd.read_csv(black_load)
             df_black["year"] = df_black["year"].astype(str)
-            df = pd.read_csv("df.csv")
+            df_load = dir_string + "df.csv"
+            df = pd.read_csv(df_load)
             df["year"] = df["year"].astype(str)
             #####################
             # Create accuracy for each year, time, and eco combination.
