@@ -477,13 +477,13 @@ if pn != "":
             print("year is", year)
             print("year type is", type(year))
             print("time_control is", time_control)
-            df_white = pd.read_csv(pn + "/df_white.csv")
+            df_white = pd.read_csv("df_white.csv")
             print(df_white.head())
             df_white["year"] = df_white["year"].astype(str)
             print(df_white.info())
-            df_black = pd.read_csv(pn + "/df_black.csv")
+            df_black = pd.read_csv("df_black.csv")
             df_black["year"] = df_black["year"].astype(str)
-            df = pd.read_csv(pn + "/df.csv")
+            df = pd.read_csv("df.csv")
             df["year"] = df["year"].astype(str)
             #####################
             # Create accuracy for each year, time, and eco combination.
