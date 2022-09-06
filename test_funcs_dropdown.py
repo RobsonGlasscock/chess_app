@@ -42,8 +42,8 @@ if pn != "":
                 archives = archives.replace(j, "")
 
         # Make a directory for the player name and change into it.
-        os.makedirs(pn, exist_ok=True)
-        os.chdir(pn)
+        # os.makedirs(pn, exist_ok=True)
+        # os.chdir(pn)
 
         # write out to a file.
         with open("archives.txt", "w") as f:
@@ -381,16 +381,16 @@ if pn != "":
         df_white = df[df["color"] == "white"].copy(deep=True)
         df_black = df[df["color"] == "black"].copy(deep=True)
 
-        df.to_csv(pn + "/df.csv")
-        df_white.to_csv(pn + "/df_white.csv")
-        df_black.to_csv(pn + "/df_black.csv")
+        df.to_csv("df.csv")
+        df_white.to_csv("df_white.csv")
+        df_black.to_csv("df_black.csv")
 
     data_pull()
 
     #####################
     # Show players their games for each year and time control - this is needed here rather than inside data_pull() because data_pull() is set to only run once. So, if a player changes an input then the table goes away if it is inside data_pull().
     ###################
-    df = pd.read_csv(pn + "/df.csv")
+    df = pd.read_csv("df.csv")
     df_val_cts = (
         df.groupby("year")["time_control"].value_counts().reset_index(level=0)
     )
