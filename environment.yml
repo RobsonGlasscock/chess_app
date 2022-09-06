@@ -1,7 +1,0 @@
-name: ml 
-
-dependencies: 
-  -matplotlib
-  -numpy
-  -pandas
-  -requests
