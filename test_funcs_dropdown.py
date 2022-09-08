@@ -17,7 +17,7 @@ home_dir = os.getcwd()
 st.title("Chess.com Player Analytics")
 
 st.write(
-    "This app pulls games from Chess.com's API and 1) summarizes time controls played each year, 2) identifies the five best and worst oppenings for each color for a given year and time control combination, 3) reports some useful tidbits about opponents, and 4) plots the average annual rating for year and time control combination. "
+    "This app pulls games from Chess.com's API and 1) summarizes time controls played each year, 2) identifies the five best and worst openings for each color for a given year and time control combination, 3) reports some useful tidbits about opponents, and 4) plots the average annual rating for year and time control combination. "
 )
 
 # Define the player's name.
@@ -546,6 +546,14 @@ if pn != "":
             win_rate = []
 
             # Append the eco's for the five best white openings to the eco list.
+
+            if len(df_white[(df_white["year"]== year) & (df_white["time_control"] == time_control)]) ==0:
+                st.write(
+                "Please enter a valid year and time control combination. You have entered a time control that does not have any games for the year entered."
+            )
+                st.stop()
+
+
             for i in (
                 df_white[
                     (df_white["year"] == year)
@@ -984,6 +992,13 @@ if pn != "":
             worst["Win Percentage"] = worst["Win Percentage"].astype(int)
             worst["Win Percentage"] = worst["Win Percentage"].astype(str) + "%"
 
+            st.subheader("__Best and Worst Openings Methodology:__")
+            st.write('''Ranking openings based only on the win rate can be deceiving. Many players have 100% win rates or 0% win rates in openings they have played only once or twice. Sorting first by win rate and then by number of games does not alleviate this problem. Reversing the sort order results in games played frequently, but not necessarily with high win rates, appearing earlier in the sorted results.''')
+            st.write('''To address these concerns, I created a metric named "Wins Over Losses" and used this for opening performance. Wins Over Losses is defined as a cumulative sum for the time control and year, where +1 is given for each win, -1 is given for each loss, and draws are given 0. Losses Over Wins, which are displayed as negative numbers, is just a different label for this same cumulative sum. This cumulative sum implicitly gives a higher weight to openings that are played more frequently.''' )
+            st.write("Year and time control combinations with less than 12 games have been excluded. For year and time control combinations with a relatively small number of games played (e.g., 15 or 20 games) the results may not make sense because 5 best and 5 worst openings for 2 colors sorts 20 games. If you have played relatively few games for a year and time control, you could see Losses Over Wins with positive numbers and high win rates or Wins Over Losses with negative numbers and low win rates.")
+            st.write('''Ex: You have played an opening five times. You have won one game, lost three games, and drawn two games. Your cumulative wins over losses is: 1 - 3 = -2 and will be labeled as "Losses Over Wins" below. Your win rate will be 1 / 5, which is 20%. ''' )
+
+
             st.subheader("__Your best openings are:__")
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
             st.table(best)
@@ -1160,7 +1175,8 @@ if pn != "":
             for i in range(len(x_labels)):
                 # Note that below has to use the x_ints associated with the x_labels but not the x_labels list.
                 plt.text(
-                    x_ints[i] + 0.33,
+                    #x_ints[i] + 0.33,
+                    x_ints[i],
                     y_labels[i],
                     str(y_labels[i]),
                     horizontalalignment="center",
@@ -1215,10 +1231,10 @@ if pn != "":
                 "__Here are some useful conversion examples from the documentation:__"
             )
             st.write(
-                """The third Time control field kind is formed as two positive integers separated by a solidus ("/") character. The first integer is the number of moves in the period and the second is the number of seconds in the period. Thus, a time control period of 40 moves in 2 1/2 hours would be represented as "40/9000"."""
+                """The third time control field kind is formed as two positive integers separated by a solidus ("/") character. The first integer is the number of moves in the period and the second is the number of seconds in the period. Thus, a time control period of 40 moves in 2 1/2 hours would be represented as "40/9000"."""
             )
             st.write(
-                """The fifth TimeControl field kind is used for an "incremental" control period. It should only be used for the last descriptor in a TimeControl tag value and is usually the only descriptor in the value. The format consists of two positive integers separated by a plus sign ("+") character. The first integer gives the minimum number of seconds allocated for the period and the second integer gives the number of extra seconds added after each move is made. So, an incremental time control of 90 minutes plus one extra minute per move would be given by "4500+60" in the TimeControl tag value."""
+                """The fifth time control field kind is used for an "incremental" control period. It should only be used for the last descriptor in a rime control tag value and is usually the only descriptor in the value. The format consists of two positive integers separated by a plus sign ("+") character. The first integer gives the minimum number of seconds allocated for the period and the second integer gives the number of extra seconds added after each move is made. So, an incremental time control of 90 minutes plus one extra minute per move would be given by "4500+60" in the time control tag value."""
             )
 
         analytics()
