@@ -1050,7 +1050,7 @@ if pn != "":
             ].iloc[0]
 
             if df_beaten["wins_over_opponent"].max() == 1:
-                print("You have not beaten anyone more than once.")
+                st.write("You have not beaten anyone more than once.")
             else:
                 print(
                     f"The opponent you have beaten the most is {opponent_most_wins}. You have beaten this player {no_wins} times."
@@ -1080,7 +1080,7 @@ if pn != "":
             ].iloc[0]
 
             if df_lostto["losses_to_opponent"].max() == 1:
-                print("You have not lost to anymore more than once.")
+                st.write("You have not lost to anymore more than once.")
             else:
                 print(
                     f"The opponent you have lost to the most is {opponent_most_losses}. You have lost to this player {no_losses} times."
@@ -1096,7 +1096,7 @@ if pn != "":
             # Initialize an empty list and put the year indices for the time control into the list.
             year_idx = []
             for i in (
-                df[df["time_control"] == time_control]["rating"]
+                df[df["time_control"] == time_control]["player_rating"]
                 .groupby(df["year"])
                 .describe()
                 .index
@@ -1108,7 +1108,7 @@ if pn != "":
             x_labels = []
             x_ints = []
             for i, j in enumerate(
-                df[df["time_control"] == time_control]["rating"]
+                df[df["time_control"] == time_control]["player_rating"]
                 .groupby(df["year"])
                 .describe()
                 .index
@@ -1119,13 +1119,13 @@ if pn != "":
                 key = name
                 values = df[
                     (df["time_control"] == time_control) & (df["year"] == j)
-                ]["rating"]
+                ]["player_rating"]
                 dicter[key] = values
 
             # Create auto-labels for the datapoints on the scatterplot graph. Earlier, I automated finding out the number of years for the x axis. Since that is known, the mean of the rating within each time control will have the same length and order. Below grabs these values.
 
             y_labels = (
-                df[df["time_control"] == time_control]["rating"]
+                df[df["time_control"] == time_control]["player_rating"]
                 .groupby(df["year"])
                 .describe()["mean"]
                 .values.astype(int)
