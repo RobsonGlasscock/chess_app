@@ -991,6 +991,8 @@ if pn != "":
             # opponent most beaten and opponent most lost to.
             #############################
 
+            st.write("__Opponent Data__:")
+
             opponent_max_played = df["opponent"][
                 df["opponent_rating"] == df["opponent_rating"].max()
             ].iloc[0]
@@ -1085,8 +1087,10 @@ if pn != "":
             if df_lostto["losses_to_opponent"].max() == 1:
                 st.write("You have not lost to anymore more than once.")
             else:
-                print(
-                    f"The opponent you have lost to the most is {opponent_most_losses}. You have lost to this player {no_losses} times."
+                st.write(
+                    "The opponent you have lost to the most is {}. You have lost to this player {} times.".format(
+                        opponent_most_losses, no_losses
+                    )
                 )
 
             #############################
