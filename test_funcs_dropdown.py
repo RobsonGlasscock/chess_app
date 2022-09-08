@@ -14,6 +14,12 @@ time_control_df = None
 year_list_df = None
 home_dir = os.getcwd()
 
+st.title("Chess.com Player Analytics")
+
+st.write(
+    "This app pulls games from Chess.com's API and 1) summarizes time controls played each year, 2) identifies the five best and worst oppenings for each color for a given year and time control combination, 3) reports some useful tidbits about opponents, and 4) plots the average annual rating for year and time control combination. "
+)
+
 # Define the player's name.
 pn = st.text_input("Enter your username below:", value="")
 if pn != "":
@@ -38,7 +44,6 @@ if pn != "":
 
         # Add a check for people attempting to input usernames that don't exist.
         archives_test = str(archives)
-        archives_test == "<Response [404]>"
 
         if archives_test == "<Response [404]>":
             st.write(
@@ -442,7 +447,7 @@ if pn != "":
         tbody th {display:none}
         </style>
         """
-    st.write("__Your time control counts for each year are:__")
+    st.subheader("__Your time control counts for each year are:__")
     st.table(df_val_cts[val_ct_cols])
     st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
@@ -979,10 +984,10 @@ if pn != "":
             worst["Win Percentage"] = worst["Win Percentage"].astype(int)
             worst["Win Percentage"] = worst["Win Percentage"].astype(str) + "%"
 
-            st.write("__Your best openings are:__")
+            st.subheader("__Your best openings are:__")
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
             st.table(best)
-            st.write("__Your worst openings are:__")
+            st.subheader("__Your worst openings are:__")
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
             st.table(worst)
 
@@ -991,7 +996,7 @@ if pn != "":
             # opponent most beaten and opponent most lost to.
             #############################
 
-            st.write("__Opponent Data__:")
+            st.subheader("__Opponent Data__:")
 
             opponent_max_played = df["opponent"][
                 df["opponent_rating"] == df["opponent_rating"].max()
@@ -1093,6 +1098,8 @@ if pn != "":
                     )
                 )
 
+            st.write("")
+
             #############################
             # Box and whisker plots
             #################################
@@ -1176,7 +1183,7 @@ if pn != "":
                 ].values,
             )
             plt.xlabel("Year")
-            plt.ylabel("Rating")
+            plt.ylabel("Average Rating")
             plt.title(title_str)
             # I would like the y axis to be larger than the ratings by a specified amount so that the labels will fit nicely. Below sets the limits equal to the min and max of the y_labels ndarray.
             plt.ylim(y_labels.min() - 50, y_labels.max() + 50)
@@ -1190,15 +1197,16 @@ if pn != "":
                 )
             plt.show()
 
-            st.write(
-                "__Below are plots of your average rating for each year__:"
-            )
+            st.subheader("__Annual Average Rating Graphs__:")
 
             st.pyplot(fig_1)
+            st.write(
+                "Information about interpreting a box plot is available here: https://en.wikipedia.org/wiki/Box_plot "
+            )
             st.pyplot(fig_2)
 
             #############################
-
+            st.subheader("__Time Control Definitions__")
             st.write(
                 "__Time control definitions are available here__: http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c9.6"
             )
