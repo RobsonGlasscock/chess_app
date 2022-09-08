@@ -42,9 +42,7 @@ if pn != "":
 
         if archives_test == "<Response [404]>":
             st.write(
-                print(
-                    "The username you have entered does not exist in the Chess.com player archives. Please re-enter a valid Chess.com username"
-                )
+                "The username you have entered does not exist in the Chess.com player archives. Please re-enter a valid Chess.com username"
             )
             st.stop()
 
