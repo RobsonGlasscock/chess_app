@@ -990,9 +990,6 @@ if pn != "":
             # Add in highest rated opponent played, highest rated opponent beaten,
             # opponent most beaten and opponent most lost to.
             #############################
-            df[["opponent", "opponent_rating"]][
-                df["opponent_rating"] == df["opponent_rating"].max()
-            ]
 
             opponent_max_played = df["opponent"][
                 df["opponent_rating"] == df["opponent_rating"].max()
@@ -1001,8 +998,10 @@ if pn != "":
                 df["opponent_rating"] == df["opponent_rating"].max()
             ].iloc[0]
 
-            print(
-                f"The highest rated opponent you have played is {opponent_max_played} who was rated {opponent_max_played_rating}."
+            st.write(
+                "The highest rated opponent you have played is {} who was rated {}.".format(
+                    [opponent_max_played, opponent_max_played_rating]
+                )
             )
 
             # Create a dataframe of won games to identify 1) the highest rated player beaten and 2) who the player has beaten the most.
