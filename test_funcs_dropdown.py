@@ -1000,7 +1000,7 @@ if pn != "":
 
             st.write(
                 "The highest rated opponent you have played is {} who was rated {}.".format(
-                    [opponent_max_played, opponent_max_played_rating]
+                    opponent_max_played, opponent_max_played_rating
                 )
             )
 
@@ -1026,8 +1026,10 @@ if pn != "":
                 )
             ].iloc[0]
 
-            print(
-                f"The highest rated opponent you have beaten is {opponent_max_beaten} who was rated {opponent_max_beaten_rating}."
+            st.write(
+                "The highest rated opponent you have beaten is {} who was rated {}.".format(
+                    opponent_max_beaten, opponent_max_beaten_rating
+                )
             )
 
             # For the opponent beaten the most:
@@ -1051,8 +1053,10 @@ if pn != "":
             if df_beaten["wins_over_opponent"].max() == 1:
                 st.write("You have not beaten anyone more than once.")
             else:
-                print(
-                    f"The opponent you have beaten the most is {opponent_most_wins}. You have beaten this player {no_wins} times."
+                st.write(
+                    "The opponent you have beaten the most is {}. You have beaten this player {} times.".format(
+                        opponent_most_wins, no_wins
+                    )
                 )
 
             # Again for most losses
