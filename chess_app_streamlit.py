@@ -36,6 +36,15 @@ if (pn != "") & (time_control != "") & (year != ""):
     # Pull the archives data which will show which YYYY/MM the player had games
     archives = requests.get(archives_url_pull)
 
+    # Add a check for people attempting to input usernames that don't exist.
+    archives_test = str(archives)
+    archives_test == "<Response [404]>"
+
+    if archives_test == "<Response [404]>":
+        print(
+            "The username you have entered does not exist in the Chess.com player archives. Please re-enter a valid Chess.com username"
+        )
+
     # strip off the dictionary structure-like components of the string and other components that aren't necessary.
     stripper_list = ['{"archives":', "}", "]", "["]
     for i, j in enumerate(stripper_list):
@@ -108,7 +117,9 @@ if (pn != "") & (time_control != "") & (year != ""):
         columns=[
             "date",
             "player",
-            "rating",
+            "player_rating",
+            "opponent",
+            "opponent_rating",
             "time_control",
             "eco",
             "eco_desc",
@@ -139,7 +150,9 @@ if (pn != "") & (time_control != "") & (year != ""):
         ):
             df["date"].iloc[i] = games["data"][i]
             df["player"].iloc[i] = games["data"][i + 1]
-            df["rating"].iloc[i] = games["data"][i + 6]
+            df["player_rating"].iloc[i] = games["data"][i + 6]
+            df["opponent"].iloc[i] = games["data"][i + 2]
+            df["opponent_rating"].iloc[i] = games["data"][i + 7]
             df["time_control"].iloc[i] = games["data"][i + 8]
             df["eco"].iloc[i] = games["data"][i + 4]
             df["eco_desc"].iloc[i] = games["data"][i + 5]
@@ -153,7 +166,9 @@ if (pn != "") & (time_control != "") & (year != ""):
         ):
             df["date"].iloc[i] = games["data"][i]
             df["player"].iloc[i] = games["data"][i + 2]
-            df["rating"].iloc[i] = games["data"][i + 7]
+            df["player_rating"].iloc[i] = games["data"][i + 7]
+            df["opponent"].iloc[i] = games["data"][i + 1]
+            df["opponent_rating"].iloc[i] = games["data"][i + 6]
             df["time_control"].iloc[i] = games["data"][i + 8]
             df["eco"].iloc[i] = games["data"][i + 4]
             df["eco_desc"].iloc[i] = games["data"][i + 5]
@@ -167,7 +182,7 @@ if (pn != "") & (time_control != "") & (year != ""):
     # df["dropper"] = "Elo" in df["rating"]
     # "Elo" in df["rating"].iloc[0]
 
-    df["dropper"] = df["rating"].apply(lambda x: "Elo" not in x)
+    df["dropper"] = df["player_rating"].apply(lambda x: "Elo" not in x)
 
     df.drop(df[df["dropper"] == 1].index, inplace=True)
 
@@ -257,9 +272,11 @@ if (pn != "") & (time_control != "") & (year != ""):
 
     # Overwrite the player variabele to just contain the name.
     df["player"] = df["player"].apply(lambda x: x[8:-2])
+    df["opponent"] = df["opponent"].apply(lambda x: x[8:-2])
 
     # Retain the numeric portion of the rating.
-    df["rating"] = df["rating"].apply(lambda x: x[-6:-2])
+    df["player_rating"] = df["player_rating"].apply(lambda x: x[-6:-2])
+    df["opponent_rating"] = df["opponent_rating"].apply(lambda x: x[-6:-2])
 
     # Ratings under < 1,000 have a leading "
     # Define a function to remove the leading "
@@ -270,8 +287,11 @@ if (pn != "") & (time_control != "") & (year != ""):
             return x
 
     # Apply the function to the dataframe to deal with the sub 1,000 ratings.
-    df["rating"] = df["rating"].apply(stripper)
-    df["rating"] = df["rating"].astype(int)
+    df["player_rating"] = df["player_rating"].apply(stripper)
+    df["player_rating"] = df["player_rating"].astype(int)
+
+    df["opponent_rating"] = df["opponent_rating"].apply(stripper)
+    df["opponent_rating"] = df["opponent_rating"].astype(int)
 
     # Remove the unnecessary components of the string.
 
@@ -303,9 +323,9 @@ if (pn != "") & (time_control != "") & (year != ""):
     df["year"] = df["date"].apply(lambda x: x[:4])
 
     # Create an annual count variable for each year-time_control.
-    df["ann_count"] = df.groupby(["year", "time_control"])["rating"].transform(
-        len
-    )
+    df["ann_count"] = df.groupby(["year", "time_control"])[
+        "player_rating"
+    ].transform(len)
 
     # sort the dataframe
     df.sort_values(by=["year", "time_control"], inplace=True)
@@ -333,6 +353,8 @@ if (pn != "") & (time_control != "") & (year != ""):
             return "5 minutes + 2"
         if col.strip() == "1800":
             return "30 minutes"
+        if col.strip() == "1800+10":
+            return "30 minutes + 10"
         if col.strip() == "2700+45":
             return "45 minutes + 45"
         if col.strip() == "2700":
@@ -697,7 +719,7 @@ if (pn != "") & (time_control != "") & (year != ""):
             "Color": "Black",
             "Number of Games": no_games,
             "Wins Over Losses": cumul_win_loss,
-            "Win Percentage": win_rate 
+            "Win Percentage": win_rate,
         }
     )
 
@@ -800,7 +822,9 @@ if (pn != "") & (time_control != "") & (year != ""):
     del eco, no_games, cumul_win_loss
 
     df_export = (
-        df.groupby(["year", "time_control"])["rating"].describe().round()
+        df.groupby(["year", "time_control"])["player_rating"]
+        .describe()
+        .round()
     )
     df_export = df_export.astype(int)
 
@@ -842,6 +866,96 @@ if (pn != "") & (time_control != "") & (year != ""):
     st.write("__Your worst openings are:__")
     st.markdown(hide_table_row_index, unsafe_allow_html=True)
     st.table(worst)
+
+    df[["opponent", "opponent_rating"]][
+        df["opponent_rating"] == df["opponent_rating"].max()
+    ]
+
+    opponent_max_played = df["opponent"][
+        df["opponent_rating"] == df["opponent_rating"].max()
+    ].iloc[0]
+    opponent_max_played_rating = df["opponent_rating"][
+        df["opponent_rating"] == df["opponent_rating"].max()
+    ].iloc[0]
+
+    print(
+        f"The highest rated opponent you have played is {opponent_max_played} who was rated {opponent_max_played_rating}."
+    )
+
+    # Create a dataframe of won games to identify 1) the highest rated player beaten and 2) who the player has beaten the most.
+
+    df_beaten = df[
+        ((df["white_wins"] == 1) & (df["color"] == "white"))
+        | ((df["black_wins"] == 1) & (df["color"] == "black"))
+    ].copy(deep=True)
+
+    # For max opponent beaten:
+    opponent_max_beaten = df_beaten["opponent"][
+        (df_beaten["opponent_rating"] == df_beaten["opponent_rating"].max())
+    ].iloc[0]
+
+    opponent_max_beaten_rating = df_beaten["opponent_rating"][
+        (df_beaten["opponent_rating"] == df_beaten["opponent_rating"].max())
+    ].iloc[0]
+
+    print(
+        f"The highest rated opponent you have beaten is {opponent_max_beaten} who was rated {opponent_max_beaten_rating}."
+    )
+
+    # For the opponent beaten the most:
+    df_beaten["wins_over_opponent"] = df_beaten.groupby("opponent")[
+        "opponent"
+    ].transform("count")
+
+    df_beaten["wins_over_opponent"].max()
+    no_wins = df_beaten["wins_over_opponent"].max()
+
+    df_beaten[
+        df_beaten["wins_over_opponent"]
+        == df_beaten["wins_over_opponent"].max()
+    ].head()
+
+    opponent_most_wins = df_beaten["opponent"][
+        df_beaten["wins_over_opponent"]
+        == df_beaten["wins_over_opponent"].max()
+    ].iloc[0]
+
+    if df_beaten["wins_over_opponent"].max() == 1:
+        print("You have not beaten anyone more than once.")
+    else:
+        print(
+            f"The opponent you have beaten the most is {opponent_most_wins}. You have beaten this player {no_wins} times."
+        )
+
+    # Again for most losses
+    df_lostto = df[
+        ((df["white_losses"] == 1) & (df["color"] == "white"))
+        | ((df["black_losses"] == 1) & (df["color"] == "black"))
+    ].copy(deep=True)
+
+    df_lostto["losses_to_opponent"] = df_lostto.groupby("opponent")[
+        "opponent"
+    ].transform("count")
+
+    df_lostto["losses_to_opponent"].max()
+    no_losses = df_lostto["losses_to_opponent"].max()
+
+    df_lostto[
+        df_lostto["losses_to_opponent"]
+        == df_lostto["losses_to_opponent"].max()
+    ].head()
+
+    opponent_most_losses = df_lostto["opponent"][
+        df_lostto["losses_to_opponent"]
+        == df_lostto["losses_to_opponent"].max()
+    ].iloc[0]
+
+    if df_lostto["losses_to_opponent"].max() == 1:
+        print("You have not lost to anymore more than once.")
+    else:
+        print(
+            f"The opponent you have lost to the most is {opponent_most_losses}. You have lost to this player {no_losses} times."
+        )
 
     #############################
     # Box and whisker plots
