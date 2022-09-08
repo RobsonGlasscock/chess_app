@@ -44,6 +44,7 @@ if pn != "":
             print(
                 "The username you have entered does not exist in the Chess.com player archives. Please re-enter a valid Chess.com username"
             )
+            st.stop()
 
         # strip off the dictionary structure-like components of the string and other components that aren't necessary.
         stripper_list = ['{"archives":', "}", "]", "["]
@@ -130,7 +131,6 @@ if pn != "":
                 "eco_desc",
                 "result",
                 "color",
-                
             ],
             index=[i for i in range(0, len(games) - 1)],
         )
@@ -164,7 +164,6 @@ if pn != "":
                 df["eco_desc"].iloc[i] = games["data"][i + 5]
                 df["result"].iloc[i] = games["data"][i + 3]
                 df["color"].iloc[i] = "white"
-
 
         # Populate the datafrme with the games data for black games.
         for i in range(0, len(games) - 1):
@@ -923,7 +922,7 @@ if pn != "":
             del eco, no_games, cumul_win_loss
 
             df_export = (
-                df.groupby(["year", "time_control"])["rating"]
+                df.groupby(["year", "time_control"])["player_rating"]
                 .describe()
                 .round()
             )
@@ -989,10 +988,10 @@ if pn != "":
 
             ##############################3
             # Add in highest rated opponent played, highest rated opponent beaten,
-            # opponent most beaten and opponent most lost to. 
+            # opponent most beaten and opponent most lost to.
             #############################
             df[["opponent", "opponent_rating"]][
-            df["opponent_rating"] == df["opponent_rating"].max()
+                df["opponent_rating"] == df["opponent_rating"].max()
             ]
 
             opponent_max_played = df["opponent"][
@@ -1015,11 +1014,17 @@ if pn != "":
 
             # For max opponent beaten:
             opponent_max_beaten = df_beaten["opponent"][
-                (df_beaten["opponent_rating"] == df_beaten["opponent_rating"].max())
+                (
+                    df_beaten["opponent_rating"]
+                    == df_beaten["opponent_rating"].max()
+                )
             ].iloc[0]
 
             opponent_max_beaten_rating = df_beaten["opponent_rating"][
-                (df_beaten["opponent_rating"] == df_beaten["opponent_rating"].max())
+                (
+                    df_beaten["opponent_rating"]
+                    == df_beaten["opponent_rating"].max()
+                )
             ].iloc[0]
 
             print(
@@ -1080,7 +1085,6 @@ if pn != "":
                 print(
                     f"The opponent you have lost to the most is {opponent_most_losses}. You have lost to this player {no_losses} times."
                 )
-
 
             #############################
             # Box and whisker plots
