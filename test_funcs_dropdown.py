@@ -32,6 +32,11 @@ if pn != "":
         # The chess.com player name in the url path is lowercase. Convert to lower here.
         player_name = pn.lower()
 
+        dir_string_archives = home_dir + "/" + pn + "/archives/"
+        # Make a new directory for the player's games.
+        os.makedirs(dir_string_archives, exist_ok=True)
+        os.chdir(dir_string_archives)
+
         # Use the player name within the url string.
         archives_url_pull = (
             "https://api.chess.com/pub/player/"
@@ -84,6 +89,7 @@ if pn != "":
         # Create a list of the archive links.
         year_month_list = df_archives["index"].values.tolist()
 
+        os.chdir(home_dir)
         dir_string = home_dir + "/" + pn + "/game_lib/"
 
         # Make a new directory for the player's games.
@@ -116,7 +122,9 @@ if pn != "":
                 games.reset_index(drop=True, inplace=True)
                 # remove header ?????
             else:
-                games_temp = pd.read_csv(j, names=["data"])
+                games_temp = pd.read_csv(
+                    j, names=["data"], on_bad_lines="skip"
+                )
                 # remove header ?????
                 games = pd.concat([games, games_temp])
                 games.reset_index(drop=True, inplace=True)
@@ -547,12 +555,19 @@ if pn != "":
 
             # Append the eco's for the five best white openings to the eco list.
 
-            if len(df_white[(df_white["year"]== year) & (df_white["time_control"] == time_control)]) ==0:
+            if (
+                len(
+                    df_white[
+                        (df_white["year"] == year)
+                        & (df_white["time_control"] == time_control)
+                    ]
+                )
+                == 0
+            ):
                 st.write(
-                "Please enter a valid year and time control combination. You have entered a time control that does not have any games for the year entered."
-            )
+                    "Please enter a valid year and time control combination. You have entered a time control that does not have any games for the year entered."
+                )
                 st.stop()
-
 
             for i in (
                 df_white[
@@ -993,11 +1008,18 @@ if pn != "":
             worst["Win Percentage"] = worst["Win Percentage"].astype(str) + "%"
 
             st.subheader("__Best and Worst Openings Methodology:__")
-            st.write('''Ranking openings based only on the win rate can be deceiving. Many players have 100% win rates or 0% win rates in openings they have played only once or twice. Sorting first by win rate and then by number of games does not alleviate this problem. Reversing the sort order results in games played frequently, but not necessarily with high win rates, appearing earlier in the sorted results.''')
-            st.write('''To address these concerns, I created a metric named "Wins Over Losses" and used this for opening performance. Wins Over Losses is defined as a cumulative sum for the time control and year, where +1 is given for each win, -1 is given for each loss, and draws are given 0. Losses Over Wins, which are displayed as negative numbers, is just a different label for this same cumulative sum. This cumulative sum implicitly gives a higher weight to openings that are played more frequently.''' )
-            st.write("Year and time control combinations with less than 12 games have been excluded. For year and time control combinations with a relatively small number of games played (e.g., 15 or 20 games) the results may not make sense because 5 best and 5 worst openings for 2 colors sorts 20 games. If you have played relatively few games for a year and time control, you could see Losses Over Wins with positive numbers and high win rates or Wins Over Losses with negative numbers and low win rates.")
-            st.write('''Ex: You have played an opening five times. You have won one game, lost three games, and drawn two games. Your cumulative wins over losses is: 1 - 3 = -2 and will be labeled as "Losses Over Wins" below. Your win rate will be 1 / 5, which is 20%. ''' )
-
+            st.write(
+                """Ranking openings based only on the win rate can be deceiving. Many players have 100% win rates or 0% win rates in openings they have played only once or twice. Sorting first by win rate and then by number of games does not alleviate this problem. Reversing the sort order results in games played frequently, but not necessarily with high win rates, appearing earlier in the sorted results."""
+            )
+            st.write(
+                """To address these concerns, I created a metric named "Wins Over Losses" and used this for opening performance. Wins Over Losses is defined as a cumulative sum for the time control and year, where +1 is given for each win, -1 is given for each loss, and draws are given 0. Losses Over Wins, which are displayed as negative numbers, is just a different label for this same cumulative sum. This cumulative sum implicitly gives a higher weight to openings that are played more frequently."""
+            )
+            st.write(
+                "Year and time control combinations with less than 12 games have been excluded. For year and time control combinations with a relatively small number of games played (e.g., 15 or 20 games) the results may not make sense because 5 best and 5 worst openings for 2 colors sorts 20 games. If you have played relatively few games for a year and time control, you could see Losses Over Wins with positive numbers and high win rates or Wins Over Losses with negative numbers and low win rates."
+            )
+            st.write(
+                """Ex: You have played an opening five times. You have won one game, lost three games, and drawn two games. Your cumulative wins over losses is: 1 - 3 = -2 and will be labeled as "Losses Over Wins" below. Your win rate will be 1 / 5, which is 20%. """
+            )
 
             st.subheader("__Your best openings are:__")
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
@@ -1175,7 +1197,7 @@ if pn != "":
             for i in range(len(x_labels)):
                 # Note that below has to use the x_ints associated with the x_labels but not the x_labels list.
                 plt.text(
-                    #x_ints[i] + 0.33,
+                    # x_ints[i] + 0.33,
                     x_ints[i],
                     y_labels[i],
                     str(y_labels[i]),
