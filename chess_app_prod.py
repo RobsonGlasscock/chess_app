@@ -10,9 +10,10 @@ start = time.time()
 pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
+home_dir = os.getcwd()
 
 # Define the player's name.
-pn = "Mau5"
+pn = "acity609"
 
 # The chess.com player name in the url path is lowercase. Convert to lower here.
 player_name = pn.lower()
@@ -27,11 +28,13 @@ archives_url_pull
 # Pull the archives data which will show which YYYY/MM the player had games
 archives = requests.get(archives_url_pull)
 
-archives_test= str(archives)
-archives_test== '<Response [404]>'
+archives_test = str(archives)
+archives_test == "<Response [404]>"
 
-if archives_test== '<Response [404]>':
-    print('The username you have entered does not exist in the Chess.com player archives. Please re-enter a valid Chess.com username')
+if archives_test == "<Response [404]>":
+    print(
+        "The username you have entered does not exist in the Chess.com player archives. Please re-enter a valid Chess.com username"
+    )
 
 # strip off the dictionary structure-like components of the string and other components that aren't necessary.
 stripper_list = ['{"archives":', "}", "]", "["]
@@ -41,6 +44,13 @@ for i, j in enumerate(stripper_list):
     else:
         archives = archives.replace(j, "")
 
+
+dir_string_archives = home_dir + "/" + pn + "/archives/"
+
+# Make a new directory for the player's games.
+os.makedirs(dir_string_archives, exist_ok=True)
+
+os.chdir(dir_string_archives)
 # write out to a file.
 with open("archives.txt", "w") as f:
     f.write(archives)
@@ -117,11 +127,11 @@ os.chdir("./game_lib")
 
 for i, j in enumerate(os.listdir()):
     if i == 0:
-        games = pd.read_csv(j, names=["data"])
+        games = pd.read_csv(j, names=["data"], on_bad_lines="skip")
         games.reset_index(drop=True, inplace=True)
         # remove header ?????
     else:
-        games_temp = pd.read_csv(j, names=["data"])
+        games_temp = pd.read_csv(j, names=["data"], on_bad_lines="skip")
         # remove header ?????
         games = pd.concat([games, games_temp])
         games.reset_index(drop=True, inplace=True)
@@ -171,8 +181,8 @@ for i in range(0, len(games) - 1):
         df["date"].iloc[i] = games["data"][i]
         df["player"].iloc[i] = games["data"][i + 1]
         df["player_rating"].iloc[i] = games["data"][i + 6]
-        df["opponent"].iloc[i]= games["data"][i+2]
-        df["opponent_rating"].iloc[i]= games["data"][i+7]
+        df["opponent"].iloc[i] = games["data"][i + 2]
+        df["opponent_rating"].iloc[i] = games["data"][i + 7]
         df["time_control"].iloc[i] = games["data"][i + 8]
         df["eco"].iloc[i] = games["data"][i + 4]
         df["eco_desc"].iloc[i] = games["data"][i + 5]
@@ -187,8 +197,8 @@ for i in range(0, len(games) - 1):
         df["date"].iloc[i] = games["data"][i]
         df["player"].iloc[i] = games["data"][i + 2]
         df["player_rating"].iloc[i] = games["data"][i + 7]
-        df["opponent"].iloc[i]= games["data"][i+1]
-        df["opponent_rating"].iloc[i]= games["data"][i+6]
+        df["opponent"].iloc[i] = games["data"][i + 1]
+        df["opponent_rating"].iloc[i] = games["data"][i + 6]
         df["time_control"].iloc[i] = games["data"][i + 8]
         df["eco"].iloc[i] = games["data"][i + 4]
         df["eco_desc"].iloc[i] = games["data"][i + 5]
@@ -301,7 +311,7 @@ df["date"] = df["date"].apply(lambda x: x[-12:-2])
 
 # Overwrite the player variabele to just contain the name.
 df["player"] = df["player"].apply(lambda x: x[8:-2])
-df["opponent"]= df["opponent"].apply(lambda x: x[8:-2])
+df["opponent"] = df["opponent"].apply(lambda x: x[8:-2])
 
 # Retain the numeric portion of the rating.
 df["player_rating"] = df["player_rating"].apply(lambda x: x[-6:-2])
@@ -354,23 +364,36 @@ df["eco_desc"] = df["eco_desc"].apply(lambda x: x.replace("]", ""))
 df["year"] = df["date"].apply(lambda x: x[:4])
 
 # Create an annual count variable for each year-time_control.
-df["ann_count"] = df.groupby(["year", "time_control"])["player_rating"].transform(len)
+df["ann_count"] = df.groupby(["year", "time_control"])[
+    "player_rating"
+].transform(len)
 
 # sort the dataframe
 df.sort_values(by=["year", "time_control"], inplace=True)
 
 df.reset_index(drop=True, inplace=True)
 
+###################
+            
 
+###########33
 def time_convert(col):
     if col.strip() == "180":
         return "3 minutes"
     if col.strip() == "60":
         return "1 minute"
+    if col.strip() == "60+1":
+        return "1 minute + 1"
     if col.strip() == "600":
         return "10 minutes"
     if col.strip() == "900+10":
         return "15 minutes + 10"
+    if col.strip() == "900+5":
+        return "15 minutes + 5"
+    if col.strip() == "1200+10":
+        return "20 minutes + 10"
+    if col.strip() == "1200":
+        return "20 minutes"
     if col.strip() == "300":
         return "5 minutes"
     if col.strip() == "300+5":
@@ -393,6 +416,10 @@ def time_convert(col):
         return "1 day"
     if col.strip() == "1/259200":
         return "3 days"
+    if col.strip() == "1/432000":
+        return "5 days"
+    if col.strip() == "1/604800":
+        return "7 days"
     if col.strip() == "1/1209600":
         return "14 days"
     if col.strip() == "1/172800":
@@ -408,7 +435,27 @@ def time_convert(col):
         return col
 
 
+# keep the original time control to sort time controls in the menu pulldowns later.
+df["time_control_orig"] = df["time_control"]
+
 df["time_control"] = df["time_control"].apply(time_convert)
+
+# split the original time controls at either the + delimiter for games with increments or the / delimiter for games that have one day or longer time controls. If there is an increment, add the increment to the time. If the game doesn't have increments, return the 0th element.
+def time_control_orig_increment(col):
+    if len(col.split("+")) == 2:
+        lead_number = int(col.split("+")[0])
+        trail_number = int(col.split("+")[1])
+        return lead_number + trail_number
+    if len(col.split("/")) == 2:
+        trail_number = int(col.split("/")[1])
+        return trail_number
+    else:
+        return int(col.split("+")[0])
+
+
+df["time_control_int"] = df["time_control_orig"].apply(
+    time_control_orig_increment
+)
 
 # Create cumulative sums for white and black by eco. This uses the +1 for wins and -1 for losses.
 df["white_cumul_sum"] = df.groupby(["year", "time_control", "eco"])[
@@ -442,6 +489,20 @@ df.head()
 # Show players their games for each year and time control
 ##################
 
+# Create a temporary df for merging in the time_control_int to the groupby results.
+df[["time_control", "time_control_int"]].value_counts().index
+merger = pd.DataFrame(
+    data={
+        "Time Control": df[["time_control", "time_control_int"]]
+        .value_counts()
+        .index.get_level_values(0),
+        "time_control_int": df[["time_control", "time_control_int"]]
+        .value_counts()
+        .index.get_level_values(1),
+    }
+)
+merger
+
 df_val_cts = (
     df.groupby("year")["time_control"].value_counts().reset_index(level=0)
 )
@@ -453,9 +514,16 @@ df_val_cts.rename(
     columns={"time_control": "Time Control", "year": "Year"}, inplace=True
 )
 val_ct_cols = ["Year", "Time Control", "Number of Games"]
-df_val_cts[val_ct_cols]
+# merge in the time_control_int and sort based on this.
+df_val_cts[val_ct_cols].merge(
+    merger, on="Time Control", how="left"
+).sort_values(by=["Year", "time_control_int"], ascending=[False, False])
 
-print(df_val_cts[val_ct_cols])
+print(
+    df_val_cts[val_ct_cols].sort_values(
+        by=["Year", "Number of Games"], ascending=[False, False]
+    )
+)
 
 # Define the time control
 time_control = "15 minutes + 10"
@@ -806,7 +874,9 @@ worst_black_df.sort_values(by="Losses Over Wins", ascending=True, inplace=True)
 
 del eco, no_games, cumul_win_loss
 
-df_export = df.groupby(["year", "time_control"])["player_rating"].describe().round()
+df_export = (
+    df.groupby(["year", "time_control"])["player_rating"].describe().round()
+)
 df_export = df_export.astype(int)
 
 #################################
@@ -846,66 +916,123 @@ print(best)
 print(worst)
 
 ##############################
-# Highest rated player played, highest rated player beaten, who the player has won and lost to the most. 
+# Highest rated player played, highest rated player beaten, who the player has won and lost to the most.
 #############################
 
-df[["opponent", "opponent_rating"]][df["opponent_rating"]== df["opponent_rating"].max()]
+df[["opponent", "opponent_rating"]][
+    df["opponent_rating"] == df["opponent_rating"].max()
+]
 
-opponent_max_played= df["opponent"][df["opponent_rating"]== df["opponent_rating"].max()].iloc[0]
-opponent_max_played_rating= df["opponent_rating"][df["opponent_rating"]== df["opponent_rating"].max()].iloc[0]
+opponent_max_played = df["opponent"][
+    df["opponent_rating"] == df["opponent_rating"].max()
+].iloc[0]
+opponent_max_played_rating = df["opponent_rating"][
+    df["opponent_rating"] == df["opponent_rating"].max()
+].iloc[0]
 
-print(f"The highest rated opponent you have played is {opponent_max_played} who was rated {opponent_max_played_rating}.")
+print(
+    f"The highest rated opponent you have played is {opponent_max_played} who was rated {opponent_max_played_rating}."
+)
 
 
-# Create a dataframe of won games to identify 1) the highest rated player beaten and 2) who the player has beaten the most. 
+# Create a dataframe of won games to identify 1) the highest rated player beaten and 2) who the player has beaten the most.
 
-df_beaten= df[((df['white_wins']==1 ) & (df['color']=='white') ) | ((df['black_wins']==1) & (df['color']=='black'))].copy(deep=True)
+df_beaten = df[
+    ((df["white_wins"] == 1) & (df["color"] == "white"))
+    | ((df["black_wins"] == 1) & (df["color"] == "black"))
+].copy(deep=True)
 
 # For max opponent beaten:
-opponent_max_beaten= df_beaten["opponent"][(df_beaten["opponent_rating"]== df_beaten["opponent_rating"].max())].iloc[0]
+opponent_max_beaten = df_beaten["opponent"][
+    (df_beaten["opponent_rating"] == df_beaten["opponent_rating"].max())
+].iloc[0]
 
-opponent_max_beaten_rating= df_beaten["opponent_rating"][(df_beaten["opponent_rating"]== df_beaten["opponent_rating"].max())].iloc[0]
+opponent_max_beaten_rating = df_beaten["opponent_rating"][
+    (df_beaten["opponent_rating"] == df_beaten["opponent_rating"].max())
+].iloc[0]
 
-print(f"The highest rated opponent you have beaten is {opponent_max_beaten} who was rated {opponent_max_beaten_rating}.")
+print(
+    f"The highest rated opponent you have beaten is {opponent_max_beaten} who was rated {opponent_max_beaten_rating}."
+)
 
-# For the opponent beaten the most: 
-df_beaten['wins_over_opponent']= df_beaten.groupby('opponent')['opponent'].transform('count')
+# For the opponent beaten the most:
+df_beaten["wins_over_opponent"] = df_beaten.groupby("opponent")[
+    "opponent"
+].transform("count")
 
-df_beaten['wins_over_opponent'].max()
-no_wins= df_beaten['wins_over_opponent'].max()
- 
-df_beaten[df_beaten['wins_over_opponent']==df_beaten['wins_over_opponent'].max()].head()
+df_beaten["wins_over_opponent"].max()
+no_wins = df_beaten["wins_over_opponent"].max()
 
-opponent_most_wins= df_beaten['opponent'][df_beaten['wins_over_opponent']==df_beaten['wins_over_opponent'].max()].iloc[0]
+df_beaten[
+    df_beaten["wins_over_opponent"] == df_beaten["wins_over_opponent"].max()
+].head()
 
-if df_beaten['wins_over_opponent'].max()==1:
+opponent_most_wins = df_beaten["opponent"][
+    df_beaten["wins_over_opponent"] == df_beaten["wins_over_opponent"].max()
+].iloc[0]
+
+if df_beaten["wins_over_opponent"].max() == 1:
     print("You have not beaten anyone more than once.")
-else: 
-    print(f"The opponent you have beaten the most is {opponent_most_wins}. You have beaten this player {no_wins} times.")
+else:
+    print(
+        f"The opponent you have beaten the most is {opponent_most_wins}. You have beaten this player {no_wins} times."
+    )
 
 # Again for most losses
-df_lostto= df[((df['white_losses']==1 ) & (df['color']=='white') ) | ((df['black_losses']==1) & (df['color']=='black'))].copy(deep=True)
+df_lostto = df[
+    ((df["white_losses"] == 1) & (df["color"] == "white"))
+    | ((df["black_losses"] == 1) & (df["color"] == "black"))
+].copy(deep=True)
 
-df_lostto['losses_to_opponent']= df_lostto.groupby('opponent')['opponent'].transform('count')
+df_lostto["losses_to_opponent"] = df_lostto.groupby("opponent")[
+    "opponent"
+].transform("count")
 
-df_lostto['losses_to_opponent'].max()
-no_losses= df_lostto['losses_to_opponent'].max()
+df_lostto["losses_to_opponent"].max()
+no_losses = df_lostto["losses_to_opponent"].max()
 
-df_lostto[df_lostto['losses_to_opponent']==df_lostto['losses_to_opponent'].max()].head()
+df_lostto[
+    df_lostto["losses_to_opponent"] == df_lostto["losses_to_opponent"].max()
+].head()
 
-opponent_most_losses= df_lostto['opponent'][df_lostto['losses_to_opponent']==df_lostto['losses_to_opponent'].max()].iloc[0]
+opponent_most_losses = df_lostto["opponent"][
+    df_lostto["losses_to_opponent"] == df_lostto["losses_to_opponent"].max()
+].iloc[0]
 
-if df_lostto['losses_to_opponent'].max()==1:
+if df_lostto["losses_to_opponent"].max() == 1:
     print("You have not lost to anymore more than once.")
-else: 
-    print(f"The opponent you have lost to the most is {opponent_most_losses}. You have lost to this player {no_losses} times.")
+else:
+    print(
+        f"The opponent you have lost to the most is {opponent_most_losses}. You have lost to this player {no_losses} times."
+    )
 
 #############################
 # Box and whisker plots
 #################################
 
 # Create a variable for the graph titles.
-title_str = pn + " " + time_control
+title_str_scatter = (
+    pn
+    + "'s"
+    + " "
+    + "Average Annual Rating for"
+    + " "
+    + time_control
+    + " "
+    + "Games"
+)
+
+title_str_box = (
+    pn
+    + "'s"
+    + " "
+    + "Annual Rating Distributions for"
+    + " "
+    + time_control
+    + " "
+    + "Games"
+)
+
 
 # Initialize an empty list and put the year indices for the time control into the list.
 year_idx = []
@@ -956,7 +1083,9 @@ for i in dicter.keys():
 fig, ax = plt.subplots()
 ax.boxplot(cols)
 plt.xticks(x_ints, x_labels)
-plt.title(title_str)
+plt.xlabel("Year")
+plt.ylabel("Ratings")
+plt.title(title_str_box)
 for i in range(len(x_labels)):
     # Note that below has to use the x_ints associated with the x_labels but not the x_labels list.
     plt.text(
@@ -982,8 +1111,8 @@ plt.scatter(
     ].values,
 )
 plt.xlabel("Year")
-plt.ylabel("Rating")
-plt.title(title_str)
+plt.ylabel("Average Rating")
+plt.title(title_str_scatter)
 # I would like the y axis to be larger than the ratings by a specified amount so that the labels will fit nicely. Below sets the limits equal to the min and max of the y_labels ndarray.
 plt.ylim(y_labels.min() - 50, y_labels.max() + 50)
 # Below uses a loop since the number of years the player has played is not known before hand. Again, the x_labels have the same legnth as the y_labels and will be in the same order from year_1 to year_1+whatever. Below is equivalent to multiple plt.text() statements and the loop is constructed to essentially "write" as many of these statements as necessary.

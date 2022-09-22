@@ -1,4 +1,4 @@
-%reset -f
+#%reset -f
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -1620,11 +1620,11 @@ worst_black_df = worst_black_df.merge(df_openings, on="eco", how="left")
 best_white_df
 worst_white_df
 best_black_df
-worst_black_df 
+worst_black_df
 
 # Manually checked via the code below but manually fed in:
-# # B01, B00, B07, C10, A53, C40, C45, B76, and B50. No exceptions noted. p/f/r.  
-df['eco_desc'][df['eco']== "B50"].head()
+# # B01, B00, B07, C10, A53, C40, C45, B76, and B50. No exceptions noted. p/f/r.
+df["eco_desc"][df["eco"] == "B50"].head()
 
 
 df_export = df.groupby(["year", "time_control"])["rating"].describe().round()
