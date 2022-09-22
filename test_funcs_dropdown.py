@@ -118,7 +118,8 @@ if pn != "":
 
         for i, j in enumerate(os.listdir()):
             if i == 0:
-                games = pd.read_csv(j, names=["data"])
+                games = pd.read_csv(j, names=["data"], on_bad_lines="skip")
+                # """TO DO: Consider adding the on_bad_lines= "Skip" to i ==0, too! """
                 games.reset_index(drop=True, inplace=True)
                 # remove header ?????
             else:
@@ -350,6 +351,8 @@ if pn != "":
                 return "3 minutes"
             if col.strip() == "60":
                 return "1 minute"
+            if col.strip() == "60+1":
+                return "1 minute + 1"
             if col.strip() == "600":
                 return "10 minutes"
             if col.strip() == "900+10":
@@ -382,6 +385,10 @@ if pn != "":
                 return "1 day"
             if col.strip() == "1/259200":
                 return "3 days"
+            if col.strip() == "1/432000":
+                return "5 days"
+            if col.strip() == "1/604800":
+                return "7 days"
             if col.strip() == "1/1209600":
                 return "14 days"
             if col.strip() == "1/172800":
@@ -396,7 +403,26 @@ if pn != "":
             else:
                 return col
 
+        # keep the original time control to sort time controls in the menu pulldowns later.
+        df["time_control_orig"] = df["time_control"]
+
         df["time_control"] = df["time_control"].apply(time_convert)
+
+        # split the original time controls at either the + delimiter for games with increments or the / delimiter for games that have one day or longer time controls. If there is an increment, add the increment to the time. If the game doesn't have increments, return the 0th element.
+        def time_control_orig_increment(col):
+            if len(col.split("+")) == 2:
+                lead_number = int(col.split("+")[0])
+                trail_number = int(col.split("+")[1])
+                return lead_number + trail_number
+            if len(col.split("/")) == 2:
+                trail_number = int(col.split("/")[1])
+                return trail_number
+            else:
+                return int(col.split("+")[0])
+
+        df["time_control_int"] = df["time_control_orig"].apply(
+            time_control_orig_increment
+        )
 
         # Create cumulative sums for white and black by eco. This uses the +1 for wins and -1 for losses.
         df["white_cumul_sum"] = df.groupby(["year", "time_control", "eco"])[
@@ -434,6 +460,19 @@ if pn != "":
     dir_string = home_dir + "/" + pn + "/game_lib/"
     csv_load = dir_string + "df.csv"
     df = pd.read_csv(csv_load)
+
+    # Create a temporary df for merging in the time_control_int to the groupby results.
+    merger = pd.DataFrame(
+        data={
+            "Time Control": df[["time_control", "time_control_int"]]
+            .value_counts()
+            .index.get_level_values(0),
+            "time_control_int": df[["time_control", "time_control_int"]]
+            .value_counts()
+            .index.get_level_values(1),
+        }
+    )
+
     df_val_cts = (
         df.groupby("year")["time_control"].value_counts().reset_index(level=0)
     )
@@ -456,7 +495,11 @@ if pn != "":
         </style>
         """
     st.subheader("__Your time control counts for each year are:__")
-    st.table(df_val_cts[val_ct_cols])
+    st.table(
+        df_val_cts[val_ct_cols].sort_values(
+            by=["Year", "Number of Games"], ascending=[False, False]
+        )
+    )
     st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
     # st.write(df_val_cts['Year'].unique())
@@ -475,7 +518,9 @@ if pn != "":
     time_control_df = pd.DataFrame(data={"Time Control": time_control_list})
     time_control_df.to_csv("time_control_list.csv")
     year_list_df = pd.DataFrame(data={"Year": year_list})
-    year_list_df.to_csv("year_list.csv")
+    year_list_df.sort_values(by="Year", ascending=False).to_csv(
+        "year_list.csv"
+    )
 
     ########################
     time_control_df = pd.read_csv("time_control_list.csv")
@@ -497,6 +542,16 @@ if pn != "":
         y_list.insert(0, "")
         # for i in year_list_df['Year']:
         # y_list.append(i)
+
+    # convert tc_list to a dataframe, merge in merger, sort based on time_control_int, then export the results back to a list for input into the box which will now have time controls sorted.
+
+    tc_list_df = pd.DataFrame(data={"Time Control": tc_list})
+    tc_list_df = tc_list_df.merge(merger, on="Time Control", how="left")
+    # The null value for the first index should be replaced with 0 so that the sort will result in the blank 0th element showing up for the textbox- otherwise you would have the minimum value sitting in the text box. That could work, but I like blank boxes to start off with better.
+    tc_list_df["time_control_int"].fillna(0, inplace=True)
+    tc_list_df.sort_values(by="time_control_int", inplace=True)
+    tc_list_df.drop(columns="time_control_int", inplace=True)
+    tc_list = list(tc_list_df["Time Control"])
 
     if (time_control_df is not None) & (year_list_df is not None):
         time_control = st.selectbox(
@@ -1142,7 +1197,16 @@ if pn != "":
             #################################
 
             # Create a variable for the graph titles.
-            title_str = pn + " " + time_control
+            title_str_box = (
+                pn
+                + "'s"
+                + " "
+                + "Annual Rating Distributions for"
+                + " "
+                + time_control
+                + " "
+                + "Games"
+            )
 
             # Initialize an empty list and put the year indices for the time control into the list.
             year_idx = []
@@ -1193,7 +1257,9 @@ if pn != "":
             fig_2, ax = plt.subplots()
             ax.boxplot(cols)
             plt.xticks(x_ints, x_labels)
-            plt.title(title_str)
+            plt.title(title_str_box)
+            plt.xlabel("Year")
+            plt.ylabel("Ratings")
             for i in range(len(x_labels)):
                 # Note that below has to use the x_ints associated with the x_labels but not the x_labels list.
                 plt.text(
@@ -1209,6 +1275,18 @@ if pn != "":
             # Scatter Plots
             ###########################
 
+            # Create a title string for the scatter plots.
+            title_str_scatter = (
+                pn
+                + "'s"
+                + " "
+                + "Average Annual Rating for"
+                + " "
+                + time_control
+                + " "
+                + "Games"
+            )
+
             # Graph of average rating for the time control over all the years the player has played that time control.
 
             fig_1, ax = plt.subplots()
@@ -1222,7 +1300,7 @@ if pn != "":
             )
             plt.xlabel("Year")
             plt.ylabel("Average Rating")
-            plt.title(title_str)
+            plt.title(title_str_scatter)
             # I would like the y axis to be larger than the ratings by a specified amount so that the labels will fit nicely. Below sets the limits equal to the min and max of the y_labels ndarray.
             plt.ylim(y_labels.min() - 50, y_labels.max() + 50)
             # Below uses a loop since the number of years the player has played is not known before hand. Again, the x_labels have the same legnth as the y_labels and will be in the same order from year_1 to year_1+whatever. Below is equivalent to multiple plt.text() statements and the loop is constructed to essentially "write" as many of these statements as necessary.
