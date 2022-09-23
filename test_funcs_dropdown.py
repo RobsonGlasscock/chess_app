@@ -1331,7 +1331,7 @@ if pn != "":
             st.pyplot(fig_2)
 
             ####################################
-            # Opening Frequency Bar Chart
+            # Opening Frequency Bar Chart For Top 10 Openings 
             ##########################################
             # st.subheader("__Opening Graph:__")
 
@@ -1339,11 +1339,17 @@ if pn != "":
                 pn
                 + "'s"
                 + " "
-                + "Openings Played for"
+                + "Top 10"
+                + " "
+                + "Openings for"
                 + " "
                 + time_control
                 + " "
                 + "Games"
+                + " "
+                + "in"
+                + " "
+                + year
             )
 
             fig_3, ax = plt.subplots()
@@ -1352,10 +1358,10 @@ if pn != "":
                     (df["year"] == year) & (df["time_control"] == time_control)
                 ]
                 .value_counts()
-                .index,
+                .index[:10],
                 df["eco_desc_first_two"][
                     (df["year"] == year) & (df["time_control"] == time_control)
-                ].value_counts(),
+                ].value_counts()[:10],
             )
             plt.xlabel("Opening")
             plt.xticks(
@@ -1363,7 +1369,7 @@ if pn != "":
                     (df["year"] == year) & (df["time_control"] == time_control)
                 ]
                 .value_counts()
-                .index,
+                .index[:10],
                 rotation="vertical",
             )
             plt.ylabel("Number of Games")

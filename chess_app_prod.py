@@ -1046,11 +1046,17 @@ title_str_bar= (
     pn
     + "'s"
     + " "
-    + "Openings Played for"
+    + "Top 10"
+    + " "
+    + "Openings for"
     + " "
     + time_control
     + " "
     + "Games"
+    + " "
+    + "in"
+    + " "
+    + year
 )
 
 # Initialize an empty list and put the year indices for the time control into the list.
@@ -1149,9 +1155,9 @@ plt.show()
 ################################
 
 # includes conditional logic to limit to the appropriate year and time control. 
-plt.bar(df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().index, df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts())
+plt.bar(df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().index[:10], df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts()[:10])
 plt.xlabel("Opening")
-plt.xticks(df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().index, rotation="vertical")
+plt.xticks(df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().index[:10], rotation="vertical")
 plt.ylabel("Number of Games")
 plt.title(title_str_bar)
 plt.show()
