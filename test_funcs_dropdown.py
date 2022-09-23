@@ -447,6 +447,14 @@ if pn != "":
         df_white = df[df["color"] == "white"].copy(deep=True)
         df_black = df[df["color"] == "black"].copy(deep=True)
 
+        # Create a variable equal to the first two words of each opening. This will be used later to graph the 5 or 10 most common openings for each year and time control combination. Note that these are NOT in the df_white and df_black dataframes but only in the df dataframe!
+        def eco_text_desc(col):
+            first_word = col.split("-")[0]
+            second_word = col.split("-")[1]
+            return first_word + " " + second_word
+
+        df["eco_desc_first_two"] = df["eco_desc"].apply(eco_text_desc)
+
         df.to_csv("df.csv")
         df_white.to_csv("df_white.csv")
         df_black.to_csv("df_black.csv")
@@ -1269,7 +1277,7 @@ if pn != "":
                     str(y_labels[i]),
                     horizontalalignment="center",
                 )
-            plt.show()
+            # plt.show()
 
             ############################
             # Scatter Plots
@@ -1311,15 +1319,57 @@ if pn != "":
                     str(y_labels[i]),
                     horizontalalignment="center",
                 )
-            plt.show()
+            # plt.show()
 
-            st.subheader("__Annual Average Rating Graphs__:")
+            # st.subheader("__Annual Average Rating Graphs__:")
+            st.subheader("__Data Visualizations__:")
 
             st.pyplot(fig_1)
             st.write(
                 "Information about interpreting a box plot is available here: https://en.wikipedia.org/wiki/Box_plot "
             )
             st.pyplot(fig_2)
+
+            ####################################
+            # Opening Frequency Bar Chart
+            ##########################################
+            # st.subheader("__Opening Graph:__")
+
+            title_str_bar = (
+                pn
+                + "'s"
+                + " "
+                + "Openings Played for"
+                + " "
+                + time_control
+                + " "
+                + "Games"
+            )
+
+            fig_3, ax = plt.subplots()
+            ax.bar(
+                df["eco_desc_first_two"][
+                    (df["year"] == year) & (df["time_control"] == time_control)
+                ]
+                .value_counts()
+                .index,
+                df["eco_desc_first_two"][
+                    (df["year"] == year) & (df["time_control"] == time_control)
+                ].value_counts(),
+            )
+            plt.xlabel("Opening")
+            plt.xticks(
+                df["eco_desc_first_two"][
+                    (df["year"] == year) & (df["time_control"] == time_control)
+                ]
+                .value_counts()
+                .index,
+                rotation="vertical",
+            )
+            plt.ylabel("Number of Games")
+            plt.title(title_str_bar)
+            # plt.show()
+            st.pyplot(fig_3)
 
             #############################
             st.subheader("__Time Control Definitions__")

@@ -13,7 +13,7 @@ pd.set_option("display.max_rows", None)
 home_dir = os.getcwd()
 
 # Define the player's name.
-pn = "acity609"
+pn = "RaeKwan"
 
 # The chess.com player name in the url path is lowercase. Convert to lower here.
 player_name = pn.lower()
@@ -484,6 +484,15 @@ df_black = df[df["color"] == "black"].copy(deep=True)
 assert df_white.shape[0] + df_black.shape[0] == df.shape[0]
 
 df.head()
+
+# Create a variable equal to the first two words of each opening. This will be used later to graph the 5 or 10 most common openings for each year and time control combination. Note that these are NOT in the df_white and df_black dataframes but only in the df dataframe! 
+
+def eco_text_desc(col):
+    first_word= col.split("-")[0]
+    second_word= col.split("-")[1]
+    return first_word + " " + second_word
+
+df["eco_desc_first_two"]= df["eco_desc"].apply(eco_text_desc)
 
 #####################
 # Show players their games for each year and time control
@@ -1033,6 +1042,16 @@ title_str_box = (
     + "Games"
 )
 
+title_str_bar= (
+    pn
+    + "'s"
+    + " "
+    + "Openings Played for"
+    + " "
+    + time_control
+    + " "
+    + "Games"
+)
 
 # Initialize an empty list and put the year indices for the time control into the list.
 year_idx = []
@@ -1124,6 +1143,20 @@ for i in range(len(x_labels)):
         horizontalalignment="center",
     )
 plt.show()
+
+#################################
+# Top 10 Openings Box Plots 
+################################
+
+# includes conditional logic to limit to the appropriate year and time control. 
+plt.bar(df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().index, df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts())
+plt.xlabel("Opening")
+plt.xticks(df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().index, rotation="vertical")
+plt.ylabel("Number of Games")
+plt.title(title_str_bar)
+plt.show()
+
+df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().sum()
 
 end = time.time()
 total_time = end - start
