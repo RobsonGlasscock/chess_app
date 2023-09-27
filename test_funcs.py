@@ -10,25 +10,33 @@ start = time.time()
 pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 
-year= ""
+year = ""
 time_control = ""
 
 # Define the player's name.
 pn = st.text_input("Enter your username below:", value="")
-if pn !="":
+if pn != "":
+
     @st.cache(suppress_st_warning=True)
     def data_pull():
-        
         # The chess.com player name in the url path is lowercase. Convert to lower here.
         player_name = pn.lower()
-        
+
         # Use the player name within the url string.
         archives_url_pull = (
-            "https://api.chess.com/pub/player/" + player_name + "/games/archives"
+            "https://api.chess.com/pub/player/"
+            + player_name
+            + "/games/archives"
         )
 
+        # Add a User-Agent dict so that Chess.com won't block the app
+        header = {
+            "User-Agent": "https://chess-analytics.herokuapp.com/",
+            "From": "Robson.Glasscock@gmail.com",
+        }
+
         # Pull the archives data which will show which YYYY/MM the player had games
-        archives = requests.get(archives_url_pull)
+        archives = requests.get(archives_url_pull, headers=header)
 
         # strip off the dictionary structure-like components of the string and other components that aren't necessary.
         stripper_list = ['{"archives":', "}", "]", "["]
@@ -69,7 +77,8 @@ if pn !="":
                 + player_name
                 + "/games/"
                 + i
-                + "/pgn"
+                + "/pgn",
+                headers=header,
             )
 
             # below replaces the backslash, which will be interpreted as part of the pather otherwise, with an underscore.
@@ -260,9 +269,15 @@ if pn !="":
         df["time_control"] = df["time_control"].apply(
             lambda x: x.replace("TimeControl", "")
         )
-        df["time_control"] = df["time_control"].apply(lambda x: x.replace('"', ""))
-        df["time_control"] = df["time_control"].apply(lambda x: x.replace("[", ""))
-        df["time_control"] = df["time_control"].apply(lambda x: x.replace("]", ""))
+        df["time_control"] = df["time_control"].apply(
+            lambda x: x.replace('"', "")
+        )
+        df["time_control"] = df["time_control"].apply(
+            lambda x: x.replace("[", "")
+        )
+        df["time_control"] = df["time_control"].apply(
+            lambda x: x.replace("]", "")
+        )
 
         # Remove the unnecessary components of the string.
         df["eco"] = df["eco"].apply(lambda x: x.replace("[ECO", ""))
@@ -285,9 +300,9 @@ if pn !="":
         df["year"] = df["date"].apply(lambda x: x[:4])
 
         # Create an annual count variable for each year-time_control.
-        df["ann_count"] = df.groupby(["year", "time_control"])["rating"].transform(
-            len
-        )
+        df["ann_count"] = df.groupby(["year", "time_control"])[
+            "rating"
+        ].transform(len)
 
         # sort the dataframe
         df.sort_values(by=["year", "time_control"], inplace=True)
@@ -362,24 +377,27 @@ if pn !="":
         df_white = df[df["color"] == "white"].copy(deep=True)
         df_black = df[df["color"] == "black"].copy(deep=True)
 
-        df.to_csv('/home/robson/streamlit_apps/chess_app/df.csv')
-        df_white.to_csv('/home/robson/streamlit_apps/chess_app/df_white.csv')
-        df_black.to_csv('/home/robson/streamlit_apps/chess_app/df_black.csv')
+        df.to_csv("/home/robson/streamlit_apps/chess_app/df.csv")
+        df_white.to_csv("/home/robson/streamlit_apps/chess_app/df_white.csv")
+        df_black.to_csv("/home/robson/streamlit_apps/chess_app/df_black.csv")
 
         #####################
-    # Show players their games for each year and time control
-    ###################
+        # Show players their games for each year and time control
+        ###################
 
         df_val_cts = (
-        df.groupby("year")["time_control"].value_counts().reset_index(level=0)
-    )
+            df.groupby("year")["time_control"]
+            .value_counts()
+            .reset_index(level=0)
+        )
         df_val_cts.info()
         df_val_cts.rename(
             columns={"time_control": "Number of Games"}, inplace=True
         )
         df_val_cts.reset_index(level=0, inplace=True)
         df_val_cts.rename(
-            columns={"time_control": "Time Control", "year": "Year"}, inplace=True
+            columns={"time_control": "Time Control", "year": "Year"},
+            inplace=True,
         )
         val_ct_cols = ["Year", "Time Control", "Number of Games"]
 
@@ -395,9 +413,8 @@ if pn !="":
         st.table(df_val_cts[val_ct_cols])
         st.markdown(hide_table_row_index, unsafe_allow_html=True)
 
-    data_pull()     
+    data_pull()
 
-    
     # Define the time control
     time_control = st.text_input(
         "Enter the time control you want to see analytics for below:", value=""
@@ -406,8 +423,9 @@ if pn !="":
     year = st.text_input(
         "Enter the year you want to see analytics for below:", value=""
     )
-    
+
     if (time_control != "") & (year != ""):
+
         def analytics():
             hide_table_row_index = """ 
                 <style>
@@ -415,30 +433,33 @@ if pn !="":
                 tbody th {display:none}
                 </style>
                 """
-            print('year is', year)
+            print("year is", year)
             print("year type is", type(year))
-            print('time_control is', time_control)
-            df_white = pd.read_csv('/home/robson/streamlit_apps/chess_app/df_white.csv')
+            print("time_control is", time_control)
+            df_white = pd.read_csv(
+                "/home/robson/streamlit_apps/chess_app/df_white.csv"
+            )
             print(df_white.head())
-            df_white['year']= df_white['year'].astype(str)
+            df_white["year"] = df_white["year"].astype(str)
             print(df_white.info())
-            df_black= pd.read_csv('/home/robson/streamlit_apps/chess_app/df_black.csv')
-            df_black['year']= df_black['year'].astype(str)
-            df= pd.read_csv('/home/robson/streamlit_apps/chess_app/df.csv')
-            df['year']= df['year'].astype(str)
-    #####################
+            df_black = pd.read_csv(
+                "/home/robson/streamlit_apps/chess_app/df_black.csv"
+            )
+            df_black["year"] = df_black["year"].astype(str)
+            df = pd.read_csv("/home/robson/streamlit_apps/chess_app/df.csv")
+            df["year"] = df["year"].astype(str)
+            #####################
             # Create accuracy for each year, time, and eco combination.
             ##########################
-            df_white["win_rate"] = df_white.groupby(["year", "time_control", "eco"])[
-                "white_wins"
-            ].transform("mean")
+            df_white["win_rate"] = df_white.groupby(
+                ["year", "time_control", "eco"]
+            )["white_wins"].transform("mean")
 
-            df_black["win_rate"] = df_black.groupby(["year", "time_control", "eco"])[
-                "black_wins"
-            ].transform("mean")
-            print('end of analytics loop', df_black['win_rate'].head())
+            df_black["win_rate"] = df_black.groupby(
+                ["year", "time_control", "eco"]
+            )["black_wins"].transform("mean")
+            print("end of analytics loop", df_black["win_rate"].head())
 
-        
             ###############
             # Best white openings
             #########
@@ -458,7 +479,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .index[:5]
                 .get_level_values(2)
@@ -474,7 +496,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .iloc[:5]["count"]
             ):
@@ -489,7 +512,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .iloc[:5]["mean"]
             ):
@@ -551,7 +575,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .index[-5:]
                 .get_level_values(2)
@@ -567,7 +592,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .iloc[-5:]["count"]
             ):
@@ -582,7 +608,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["white_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .iloc[-5:]["mean"]
             ):
@@ -648,7 +675,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .index[:5]
                 .get_level_values(2)
@@ -664,7 +692,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .iloc[:5]["count"]
             ):
@@ -679,7 +708,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .iloc[:5]["mean"]
             ):
@@ -716,7 +746,7 @@ if pn !="":
                     "Color": "Black",
                     "Number of Games": no_games,
                     "Wins Over Losses": cumul_win_loss,
-                    "Win Percentage": win_rate 
+                    "Win Percentage": win_rate,
                 }
             )
 
@@ -740,7 +770,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .index[-5:]
                 .get_level_values(2)
@@ -756,7 +787,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .iloc[-5:]["count"]
             ):
@@ -771,7 +803,8 @@ if pn !="":
                 .groupby(["year", "time_control", "eco"])["black_cumul_sum"]
                 .describe()
                 .sort_values(
-                    by=["year", "time_control", "mean", "count"], ascending=False
+                    by=["year", "time_control", "mean", "count"],
+                    ascending=False,
                 )
                 .iloc[-5:]["mean"]
             ):
@@ -819,7 +852,9 @@ if pn !="":
             del eco, no_games, cumul_win_loss
 
             df_export = (
-                df.groupby(["year", "time_control"])["rating"].describe().round()
+                df.groupby(["year", "time_control"])["rating"]
+                .describe()
+                .round()
             )
             df_export = df_export.astype(int)
 
@@ -827,7 +862,9 @@ if pn !="":
             # Link openings to opening descriptions
             ###################################
             df_openings = (
-                df.groupby(["eco"])["eco_desc"].describe().reset_index(drop=False)
+                df.groupby(["eco"])["eco_desc"]
+                .describe()
+                .reset_index(drop=False)
             )
 
             df_openings = df_openings[["eco", "top"]].copy(deep=True)
@@ -840,13 +877,21 @@ if pn !="":
             # Merge in the eco_descriptions to the best and worst dataframes
             ###################
 
-            best_white_df = best_white_df.merge(df_openings, on="ECO", how="left")
+            best_white_df = best_white_df.merge(
+                df_openings, on="ECO", how="left"
+            )
 
-            worst_white_df = worst_white_df.merge(df_openings, on="ECO", how="left")
+            worst_white_df = worst_white_df.merge(
+                df_openings, on="ECO", how="left"
+            )
 
-            best_black_df = best_black_df.merge(df_openings, on="ECO", how="left")
+            best_black_df = best_black_df.merge(
+                df_openings, on="ECO", how="left"
+            )
 
-            worst_black_df = worst_black_df.merge(df_openings, on="ECO", how="left")
+            worst_black_df = worst_black_df.merge(
+                df_openings, on="ECO", how="left"
+            )
 
             ##############################
             # Best and Worst Openings
@@ -862,7 +907,6 @@ if pn !="":
             st.markdown(hide_table_row_index, unsafe_allow_html=True)
             st.table(worst)
 
-        
             #############################
             # Box and whisker plots
             #################################
@@ -894,9 +938,9 @@ if pn !="":
                 x_labels.append(str(j))
                 x_ints.append(i + 1)
                 key = name
-                values = df[(df["time_control"] == time_control) & (df["year"] == j)][
-                    "rating"
-                ]
+                values = df[
+                    (df["time_control"] == time_control) & (df["year"] == j)
+                ]["rating"]
                 dicter[key] = values
 
             # Create auto-labels for the datapoints on the scatterplot graph. Earlier, I automated finding out the number of years for the x axis. Since that is known, the mean of the rating within each time control will have the same length and order. Below grabs these values.
@@ -960,22 +1004,22 @@ if pn !="":
                 )
             plt.show()
 
-            st.write("__Below are plots of your average rating for each year__:")
+            st.write(
+                "__Below are plots of your average rating for each year__:"
+            )
 
             st.pyplot(fig_1)
             st.pyplot(fig_2)
 
-
-        #############################
-
-
-
+            #############################
 
             st.write(
                 "__Time control definitions are available here__: http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c9.6"
             )
 
-            st.write("__Here are some useful conversion examples from the documentation:__")
+            st.write(
+                "__Here are some useful conversion examples from the documentation:__"
+            )
             st.write(
                 """The third Time control field kind is formed as two positive integers separated by a solidus ("/") character. The first integer is the number of moves in the period and the second is the number of seconds in the period. Thus, a time control period of 40 moves in 2 1/2 hours would be represented as "40/9000"."""
             )
@@ -984,10 +1028,9 @@ if pn !="":
             )
 
         analytics()
-        
+
 end = time.time()
 total_time = end - start
 
 total_time
 print("Execution Time", str(total_time))
-

@@ -1,4 +1,4 @@
-%reset -f
+# %reset -f
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -25,8 +25,15 @@ archives_url_pull = (
 
 archives_url_pull
 
+
+# Add a User-Agent dict so that Chess.com won't block the app
+header = {
+    "User-Agent": "https://chess-analytics.herokuapp.com/",
+    "From": "Robson.Glasscock@gmail.com",
+}
+
 # Pull the archives data which will show which YYYY/MM the player had games
-archives = requests.get(archives_url_pull)
+archives = requests.get(archives_url_pull, headers=header)
 
 archives_test = str(archives)
 archives_test == "<Response [404]>"
@@ -43,7 +50,6 @@ for i, j in enumerate(stripper_list):
         archives = archives.text.replace(j, "")
     else:
         archives = archives.replace(j, "")
-
 
 dir_string_archives = home_dir + "/" + pn + "/archives/"
 
@@ -109,7 +115,9 @@ for i in year_month_list:
         + player_name
         + "/games/"
         + i
-        + "/pgn"
+        + "/pgn",
+        # add header info so request won't get denied by Chess.com
+        headers=header,
     )
 
     # below replaces the backslash, which will be interpreted as part of the pather otherwise, with an underscore.
@@ -229,6 +237,7 @@ The third Time control field kind is formed as two positive integers separated b
 
 "The fifth TimeControl field kind is used for an "incremental" control period. It should only be used for the last descriptor in a TimeControl tag value and is usually the only descriptor in the value. The format consists of two positive integers separated by a plus sign ("+") character. The first integer gives the minimum number of seconds allocated for the period and the second integer gives the number of extra seconds added after each move is made. So, an incremental time control of 90 minutes plus one extra minute per move would be given by "4500+60" in the TimeControl tag value."
 """
+
 
 # Create functions for the following variables: white wins, white losses, black wins,
 # black losses, white draws, black draws.
@@ -374,7 +383,7 @@ df.sort_values(by=["year", "time_control"], inplace=True)
 df.reset_index(drop=True, inplace=True)
 
 ###################
-            
+
 
 ###########33
 def time_convert(col):
@@ -440,6 +449,7 @@ df["time_control_orig"] = df["time_control"]
 
 df["time_control"] = df["time_control"].apply(time_convert)
 
+
 # split the original time controls at either the + delimiter for games with increments or the / delimiter for games that have one day or longer time controls. If there is an increment, add the increment to the time. If the game doesn't have increments, return the 0th element.
 def time_control_orig_increment(col):
     if len(col.split("+")) == 2:
@@ -485,14 +495,16 @@ assert df_white.shape[0] + df_black.shape[0] == df.shape[0]
 
 df.head()
 
-# Create a variable equal to the first two words of each opening. This will be used later to graph the 5 or 10 most common openings for each year and time control combination. Note that these are NOT in the df_white and df_black dataframes but only in the df dataframe! 
+# Create a variable equal to the first two words of each opening. This will be used later to graph the 5 or 10 most common openings for each year and time control combination. Note that these are NOT in the df_white and df_black dataframes but only in the df dataframe!
+
 
 def eco_text_desc(col):
-    first_word= col.split("-")[0]
-    second_word= col.split("-")[1]
+    first_word = col.split("-")[0]
+    second_word = col.split("-")[1]
     return first_word + " " + second_word
 
-df["eco_desc_first_two"]= df["eco_desc"].apply(eco_text_desc)
+
+df["eco_desc_first_two"] = df["eco_desc"].apply(eco_text_desc)
 
 #####################
 # Show players their games for each year and time control
@@ -1042,7 +1054,7 @@ title_str_box = (
     + "Games"
 )
 
-title_str_bar= (
+title_str_bar = (
     pn
     + "'s"
     + " "
@@ -1151,18 +1163,36 @@ for i in range(len(x_labels)):
 plt.show()
 
 #################################
-# Top 10 Openings Box Plots 
+# Top 10 Openings Box Plots
 ################################
 
-# includes conditional logic to limit to the appropriate year and time control. 
-plt.bar(df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().index[:10], df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts()[:10])
+# includes conditional logic to limit to the appropriate year and time control.
+plt.bar(
+    df["eco_desc_first_two"][
+        (df["year"] == year) & (df["time_control"] == time_control)
+    ]
+    .value_counts()
+    .index[:10],
+    df["eco_desc_first_two"][
+        (df["year"] == year) & (df["time_control"] == time_control)
+    ].value_counts()[:10],
+)
 plt.xlabel("Opening")
-plt.xticks(df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().index[:10], rotation="vertical")
+plt.xticks(
+    df["eco_desc_first_two"][
+        (df["year"] == year) & (df["time_control"] == time_control)
+    ]
+    .value_counts()
+    .index[:10],
+    rotation="vertical",
+)
 plt.ylabel("Number of Games")
 plt.title(title_str_bar)
 plt.show()
 
-df["eco_desc_first_two"][(df["year"]==year) & (df["time_control"]== time_control)].value_counts().sum()
+df["eco_desc_first_two"][
+    (df["year"] == year) & (df["time_control"] == time_control)
+].value_counts().sum()
 
 end = time.time()
 total_time = end - start

@@ -23,12 +23,10 @@ st.write(
 # Define the player's name.
 pn = st.text_input("Enter your username below:", value="")
 if pn != "":
-
     os.system("streamlit cache clear")
 
     @st.cache(suppress_st_warning=True)
     def data_pull():
-
         # The chess.com player name in the url path is lowercase. Convert to lower here.
         player_name = pn.lower()
 
@@ -44,8 +42,14 @@ if pn != "":
             + "/games/archives"
         )
 
+        # Add a User-Agent dict so that Chess.com won't block the app
+        header = {
+            "User-Agent": "https://chess-analytics.herokuapp.com/",
+            "From": "Robson.Glasscock@gmail.com",
+        }
+
         # Pull the archives data which will show which YYYY/MM the player had games
-        archives = requests.get(archives_url_pull)
+        archives = requests.get(archives_url_pull, headers=header)
 
         # Add a check for people attempting to input usernames that don't exist.
         archives_test = str(archives)
@@ -102,7 +106,8 @@ if pn != "":
                 + player_name
                 + "/games/"
                 + i
-                + "/pgn"
+                + "/pgn",
+                headers=header,
             )
 
             # below replaces the backslash, which will be interpreted as part of the pather otherwise, with an underscore.
@@ -1331,7 +1336,7 @@ if pn != "":
             st.pyplot(fig_2)
 
             ####################################
-            # Opening Frequency Bar Chart For Top 10 Openings 
+            # Opening Frequency Bar Chart For Top 10 Openings
             ##########################################
             # st.subheader("__Opening Graph:__")
 
@@ -1394,4 +1399,3 @@ if pn != "":
             )
 
         analytics()
-
