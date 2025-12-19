@@ -37,9 +37,7 @@ if pn != "":
 
         # Use the player name within the url string.
         archives_url_pull = (
-            "https://api.chess.com/pub/player/"
-            + player_name
-            + "/games/archives"
+            "https://api.chess.com/pub/player/" + player_name + "/games/archives"
         )
 
         # Add a User-Agent dict so that Chess.com won't block the app
@@ -128,9 +126,7 @@ if pn != "":
                 games.reset_index(drop=True, inplace=True)
                 # remove header ?????
             else:
-                games_temp = pd.read_csv(
-                    j, names=["data"], on_bad_lines="skip"
-                )
+                games_temp = pd.read_csv(j, names=["data"], on_bad_lines="skip")
                 # remove header ?????
                 games = pd.concat([games, games_temp])
                 games.reset_index(drop=True, inplace=True)
@@ -311,15 +307,9 @@ if pn != "":
         df["time_control"] = df["time_control"].apply(
             lambda x: x.replace("TimeControl", "")
         )
-        df["time_control"] = df["time_control"].apply(
-            lambda x: x.replace('"', "")
-        )
-        df["time_control"] = df["time_control"].apply(
-            lambda x: x.replace("[", "")
-        )
-        df["time_control"] = df["time_control"].apply(
-            lambda x: x.replace("]", "")
-        )
+        df["time_control"] = df["time_control"].apply(lambda x: x.replace('"', ""))
+        df["time_control"] = df["time_control"].apply(lambda x: x.replace("[", ""))
+        df["time_control"] = df["time_control"].apply(lambda x: x.replace("]", ""))
 
         # Remove the unnecessary components of the string.
         df["eco"] = df["eco"].apply(lambda x: x.replace("[ECO", ""))
@@ -455,7 +445,13 @@ if pn != "":
         # Create a variable equal to the first two words of each opening. This will be used later to graph the 5 or 10 most common openings for each year and time control combination. Note that these are NOT in the df_white and df_black dataframes but only in the df dataframe!
         def eco_text_desc(col):
             first_word = col.split("-")[0]
-            second_word = col.split("-")[1]
+            # Chess.com updated at some point and has "Undefined" as an opening name
+            # This causes the split at 1 to be out of bounds
+            if len(col.split("-")) > 1:
+                second_word = col.split("-")[1]
+            else:
+                second_word = ""
+
             return first_word + " " + second_word
 
         df["eco_desc_first_two"] = df["eco_desc"].apply(eco_text_desc)
@@ -486,13 +482,9 @@ if pn != "":
         }
     )
 
-    df_val_cts = (
-        df.groupby("year")["time_control"].value_counts().reset_index(level=0)
-    )
+    df_val_cts = df.groupby("year")["time_control"].value_counts().reset_index(level=0)
     df_val_cts.info()
-    df_val_cts.rename(
-        columns={"time_control": "Number of Games"}, inplace=True
-    )
+    df_val_cts.rename(columns={"time_control": "Number of Games"}, inplace=True)
     df_val_cts.reset_index(level=0, inplace=True)
     df_val_cts.rename(
         columns={"time_control": "Time Control", "year": "Year"}, inplace=True
@@ -531,9 +523,7 @@ if pn != "":
     time_control_df = pd.DataFrame(data={"Time Control": time_control_list})
     time_control_df.to_csv("time_control_list.csv")
     year_list_df = pd.DataFrame(data={"Year": year_list})
-    year_list_df.sort_values(by="Year", ascending=False).to_csv(
-        "year_list.csv"
-    )
+    year_list_df.sort_values(by="Year", ascending=False).to_csv("year_list.csv")
 
     ########################
     time_control_df = pd.read_csv("time_control_list.csv")
@@ -602,13 +592,13 @@ if pn != "":
             #####################
             # Create accuracy for each year, time, and eco combination.
             ##########################
-            df_white["win_rate"] = df_white.groupby(
-                ["year", "time_control", "eco"]
-            )["white_wins"].transform("mean")
+            df_white["win_rate"] = df_white.groupby(["year", "time_control", "eco"])[
+                "white_wins"
+            ].transform("mean")
 
-            df_black["win_rate"] = df_black.groupby(
-                ["year", "time_control", "eco"]
-            )["black_wins"].transform("mean")
+            df_black["win_rate"] = df_black.groupby(["year", "time_control", "eco"])[
+                "black_wins"
+            ].transform("mean")
             print("end of analytics loop", df_black["win_rate"].head())
 
             ###############
@@ -692,9 +682,7 @@ if pn != "":
                     (df_white["year"] == year)
                     & (df_white["time_control"] == time_control)
                 ]
-                .groupby(["year", "time_control", "eco"])[
-                    "white_cumul_sum", "win_rate"
-                ]
+                .groupby(["year", "time_control", "eco"])["white_cumul_sum", "win_rate"]
                 .describe()
                 .sort_values(
                     by=[
@@ -788,9 +776,7 @@ if pn != "":
                     (df_white["year"] == year)
                     & (df_white["time_control"] == time_control)
                 ]
-                .groupby(["year", "time_control", "eco"])[
-                    "white_cumul_sum", "win_rate"
-                ]
+                .groupby(["year", "time_control", "eco"])["white_cumul_sum", "win_rate"]
                 .describe()
                 .sort_values(
                     by=[
@@ -888,9 +874,7 @@ if pn != "":
                     (df_black["year"] == year)
                     & (df_black["time_control"] == time_control)
                 ]
-                .groupby(["year", "time_control", "eco"])[
-                    "black_cumul_sum", "win_rate"
-                ]
+                .groupby(["year", "time_control", "eco"])["black_cumul_sum", "win_rate"]
                 .describe()
                 .sort_values(
                     by=[
@@ -983,9 +967,7 @@ if pn != "":
                     (df_black["year"] == year)
                     & (df_black["time_control"] == time_control)
                 ]
-                .groupby(["year", "time_control", "eco"])[
-                    "black_cumul_sum", "win_rate"
-                ]
+                .groupby(["year", "time_control", "eco"])["black_cumul_sum", "win_rate"]
                 .describe()
                 .sort_values(
                     by=[
@@ -1018,9 +1000,7 @@ if pn != "":
             del eco, no_games, cumul_win_loss
 
             df_export = (
-                df.groupby(["year", "time_control"])["player_rating"]
-                .describe()
-                .round()
+                df.groupby(["year", "time_control"])["player_rating"].describe().round()
             )
             df_export = df_export.astype(int)
 
@@ -1028,9 +1008,7 @@ if pn != "":
             # Link openings to opening descriptions
             ###################################
             df_openings = (
-                df.groupby(["eco"])["eco_desc"]
-                .describe()
-                .reset_index(drop=False)
+                df.groupby(["eco"])["eco_desc"].describe().reset_index(drop=False)
             )
 
             df_openings = df_openings[["eco", "top"]].copy(deep=True)
@@ -1043,21 +1021,13 @@ if pn != "":
             # Merge in the eco_descriptions to the best and worst dataframes
             ###################
 
-            best_white_df = best_white_df.merge(
-                df_openings, on="ECO", how="left"
-            )
+            best_white_df = best_white_df.merge(df_openings, on="ECO", how="left")
 
-            worst_white_df = worst_white_df.merge(
-                df_openings, on="ECO", how="left"
-            )
+            worst_white_df = worst_white_df.merge(df_openings, on="ECO", how="left")
 
-            best_black_df = best_black_df.merge(
-                df_openings, on="ECO", how="left"
-            )
+            best_black_df = best_black_df.merge(df_openings, on="ECO", how="left")
 
-            worst_black_df = worst_black_df.merge(
-                df_openings, on="ECO", how="left"
-            )
+            worst_black_df = worst_black_df.merge(df_openings, on="ECO", how="left")
 
             ##############################
             # Best and Worst Openings
@@ -1125,17 +1095,11 @@ if pn != "":
 
             # For max opponent beaten:
             opponent_max_beaten = df_beaten["opponent"][
-                (
-                    df_beaten["opponent_rating"]
-                    == df_beaten["opponent_rating"].max()
-                )
+                (df_beaten["opponent_rating"] == df_beaten["opponent_rating"].max())
             ].iloc[0]
 
             opponent_max_beaten_rating = df_beaten["opponent_rating"][
-                (
-                    df_beaten["opponent_rating"]
-                    == df_beaten["opponent_rating"].max()
-                )
+                (df_beaten["opponent_rating"] == df_beaten["opponent_rating"].max())
             ].iloc[0]
 
             st.write(
@@ -1153,13 +1117,11 @@ if pn != "":
             no_wins = df_beaten["wins_over_opponent"].max()
 
             df_beaten[
-                df_beaten["wins_over_opponent"]
-                == df_beaten["wins_over_opponent"].max()
+                df_beaten["wins_over_opponent"] == df_beaten["wins_over_opponent"].max()
             ].head()
 
             opponent_most_wins = df_beaten["opponent"][
-                df_beaten["wins_over_opponent"]
-                == df_beaten["wins_over_opponent"].max()
+                df_beaten["wins_over_opponent"] == df_beaten["wins_over_opponent"].max()
             ].iloc[0]
 
             if df_beaten["wins_over_opponent"].max() == 1:
@@ -1185,13 +1147,11 @@ if pn != "":
             no_losses = df_lostto["losses_to_opponent"].max()
 
             df_lostto[
-                df_lostto["losses_to_opponent"]
-                == df_lostto["losses_to_opponent"].max()
+                df_lostto["losses_to_opponent"] == df_lostto["losses_to_opponent"].max()
             ].head()
 
             opponent_most_losses = df_lostto["opponent"][
-                df_lostto["losses_to_opponent"]
-                == df_lostto["losses_to_opponent"].max()
+                df_lostto["losses_to_opponent"] == df_lostto["losses_to_opponent"].max()
             ].iloc[0]
 
             if df_lostto["losses_to_opponent"].max() == 1:
@@ -1245,9 +1205,9 @@ if pn != "":
                 x_labels.append(str(j))
                 x_ints.append(i + 1)
                 key = name
-                values = df[
-                    (df["time_control"] == time_control) & (df["year"] == j)
-                ]["player_rating"]
+                values = df[(df["time_control"] == time_control) & (df["year"] == j)][
+                    "player_rating"
+                ]
                 dicter[key] = values
 
             # Create auto-labels for the datapoints on the scatterplot graph. Earlier, I automated finding out the number of years for the x axis. Since that is known, the mean of the rating within each time control will have the same length and order. Below grabs these values.

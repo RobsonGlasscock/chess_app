@@ -1,4 +1,4 @@
-# %reset -f
+%reset -f
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
@@ -500,7 +500,13 @@ df.head()
 
 def eco_text_desc(col):
     first_word = col.split("-")[0]
-    second_word = col.split("-")[1]
+    # Chess.com updated at some point and has "Undefined" as an opening name
+    # This causes the split at 1 to be out of bounds 
+    if len(col.split("-")) > 1:
+        second_word = col.split("-")[1]
+    else:
+        second_word = ""
+
     return first_word + " " + second_word
 
 
